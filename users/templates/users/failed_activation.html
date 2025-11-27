@@ -1,9 +1,0 @@
-{% extends 'base_templates/base.html' %}
-{% block title %}Профиль не активирован{% endblock %}
-
-{% block content %}
-    <form method="post">
-    {% csrf_token %}
-        <p>Профиль не активирован</p>
-    </form>
-{% endblock %}

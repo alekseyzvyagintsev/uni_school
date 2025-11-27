@@ -3,9 +3,9 @@ from django.db import models
 
 
 class Course(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=250, verbose_name='название')
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)
-    description = models.TextField()
+    description = models.TextField(verbose_name='описание')
 
     def __str__(self):
         return self.title
@@ -20,9 +20,9 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=250, verbose_name='название')
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)
-    description = models.TextField()
+    description = models.TextField(verbose_name='описание')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
 
     def __str__(self):
