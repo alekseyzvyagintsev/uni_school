@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'materials',
+    'users'
 ]
 
 MIDDLEWARE = [
@@ -84,7 +86,9 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-PASSWORD_RESET_TIMEOUT_DAYS = 1  # Количество дней, в течение которых действителен токен
+AUTH_USER_MODEL = "users.User"
+
+# PASSWORD_RESET_TIMEOUT_DAYS = 1  # Количество дней, в течение которых действителен токен
 
 LANGUAGE_CODE = "ru-RU"
 
@@ -138,7 +142,7 @@ LOGGING = {
         },
         "file": {
             "class": "logging.FileHandler",
-            "filename": "sending_app.log",
+            "filename": "uni_school_app.log",
             "formatter": "verbose",
         },
     },
