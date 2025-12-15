@@ -6,32 +6,107 @@ from materials.serializer import CourseSerializer, LessonSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    """
+    Представление для полного управления учебными курсами.
+
+    Реализует стандартный CRUD-контроллер для учебных курсов, позволяя создавать новые курсы,
+    просматривать существующие, изменять их содержимое и удалять ненужные.
+
+    #### Основные возможности:
+    - Просмотр списка курсов.
+    - Детальная информация о каждом курсе.
+    - Редактирование сведений о курсах.
+    - Возможность удалить курс.
+
+    #### Методы HTTP:
+    - GET /courses/: Получение списка курсов.
+    - GET /courses/<id>/: Информация о конкретном курсе.
+    - POST /courses/: Создание нового курса.
+    - PUT /courses/<id>/: Полное обновление курса.
+    - PATCH /courses/<id>/: Частичное обновление курса.
+    - DELETE /courses/<id>/: Удаление курса.
+    """
+    queryset = Course.objects.all()       # Выборка всех курсов
+    serializer_class = CourseSerializer  # Сериализатор для преобразования моделей в JSON
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
-    serializer_class = LessonSerializer
+    """
+    Представление для создания новых уроков.
+
+    Позволяет пользователям создать новый урок с указанием обязательных полей.
+
+    #### Возможности:
+    - Только создание нового урока.
+
+    #### Метод HTTP:
+    - POST /lesson/create/: Отправка формы для создания урока.
+    """
+    serializer_class = LessonSerializer  # Сериализатор для формирования формы создания урока
 
 
 class LessonListAPIView(generics.ListAPIView):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
+    """
+    Представление для отображения списка уроков.
+
+    Показывает полный перечень созданных уроков.
+
+    #### Возможности:
+    - Просмотр списка всех уроков.
+
+    #### Метод HTTP:
+    - GET /lessons/: Получение списка уроков.
+    """
+    queryset = Lesson.objects.all()        # Выборка всех уроков
+    serializer_class = LessonSerializer   # Сериализатор для подготовки данных
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
+    """
+    Представление для получения детальной информации об одном уроке.
+
+    Позволяет просмотреть полную информацию о конкретном уроке.
+
+    #### Возможности:
+    - Подробная информация о конкретном уроке.
+
+    #### Метод HTTP:
+    - GET /lesson/<id>/: Получение деталей урока по его идентификатору.
+    """
+    queryset = Lesson.objects.all()        # Выборка всех уроков
+    serializer_class = LessonSerializer   # Сериализатор для отображения данных
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
+    """
+    Представление для изменения данных об уроке.
 
+    Позволяет обновить содержание урока путём полной замены данных (PUT) или частичного обновления (PATCH).
+
+    #### Возможности:
+    - Изменение содержимого урока.
+
+    #### Методы HTTP:
+    - PUT /lesson/<id>/: Полное обновление урока.
+    - PATCH /lesson/<id>/: Частичное обновление урока.
+    """
+    queryset = Lesson.objects.all()        # Выборка всех уроков
+    serializer_class = LessonSerializer   # Сериализатор для сохранения изменений
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
+    """
+    Представление для удаления урока.
+
+    Позволяет администраторам удалить указанный урок навсегда.
+
+    #### Возможности:
+    - Удаление выбранного урока.
+
+    #### Метод HTTP:
+    - DELETE /lesson/<id>/: Удаление урока по указанному идентификатору.
+    """
+    queryset = Lesson.objects.all()        # Выборка всех уроков
+    serializer_class = LessonSerializer   # Сериализатор для подтверждения операции
 
 
 ##############################################################################################################

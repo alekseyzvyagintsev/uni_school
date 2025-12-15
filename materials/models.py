@@ -3,38 +3,68 @@ from django.db import models
 
 
 class Course(models.Model):
-    title = models.CharField(max_length=250, verbose_name='название')
-    preview = models.ImageField(upload_to="preview/", blank=True, null=True)
-    description = models.TextField(verbose_name='описание')
+    """
+    Модель представляет собой учебный курс.
+
+    Каждый курс имеет заголовок, краткую аннотацию (предпросмотр) и подробное описание.
+
+    #### Атрибуты:
+    - **title**: Заголовок курса (строка длиной до 250 символов).
+    - **preview**: Изображение-превью курса (загружается в папку `preview`).
+    - **description**: Подробное описание курса (текст неограниченной длины).
+
+    #### Особенности:
+    - Название выводится как значение объекта (при помощи магического метода `__str__`).
+    - Имеет настройку упорядочивания по названию.
+    - Таблица базы данных именуется как `"courses"`.
+    """
+
+    title = models.CharField(max_length=250, verbose_name='название')  # Заголовок курса
+    preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-предпросмотр курса
+    description = models.TextField(verbose_name='описание')  # Подробное описание курса
 
     def __str__(self):
-        return self.title
+        return self.title  # Строковое представление курса
 
     class Meta:
-        verbose_name = "Курс"
-        verbose_name_plural = "Курсы"
-        ordering = [
-            "title",
-        ]
-        db_table = "courses"
+        verbose_name = "Курс"   # Наименование модели
+        verbose_name_plural = "Курсы"  # Множественное наименование модели
+        ordering = ["title"]     # Упорядочивание по названию
+        db_table = "courses"     # Имя таблицы в БД
 
 
 class Lesson(models.Model):
-    title = models.CharField(max_length=250, verbose_name='название')
-    preview = models.ImageField(upload_to="preview/", blank=True, null=True)
-    description = models.TextField(verbose_name='описание')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
+    """
+    Модель описывает отдельный урок, принадлежащий определенному курсу.
+
+    Урок имеет заголовок, описание и привязку к одному из курсов.
+
+    #### Атрибуты:
+    - **title**: Заголовок урока (строка длиной до 250 символов).
+    - **preview**: Изображение-превью урока (загружается в папку `preview`).
+    - **description**: Подробное описание урока (текст неограниченной длины).
+    - **course**: Внешний ключ на соответствующий курс, к которому относится урок.
+
+    #### Особенности:
+    - Название выводится как значение объекта (через метод `__str__`).
+    - Курсам разрешено иметь несколько уроков благодаря внешнему ключу с каскадным удалением.
+    - Порядок вывода задаётся по названию урока.
+    - Таблица базы данных называется `"lessons"`.
+    """
+
+    title = models.CharField(max_length=250, verbose_name='название')  # Заголовок урока
+    preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-привью урока
+    description = models.TextField(verbose_name='описание')  # Подробное описание урока
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons') # Связанный курс (внешний ключ)
 
     def __str__(self):
-        return self.title
+        return self.title  # Строковое представление урока
 
     class Meta:
-        verbose_name = "Урок"
-        verbose_name_plural = "Уроки"
-        ordering = [
-            "title",
-        ]
-        db_table = "lessons"
+        verbose_name = "Урок"          # Наименование модели
+        verbose_name_plural = "Уроки"  # Множественное наименование модели
+        ordering = ["title"]           # Упорядочивание по названию
+        db_table = "lessons"           # Имя таблицы в БД
 
 
 ####################################################################################################################

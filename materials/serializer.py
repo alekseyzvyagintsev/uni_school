@@ -5,6 +5,27 @@ from materials.models import Lesson, Course
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор уроков.
+
+    Преобразует экземпляр модели урока (`Lesson`) в словарь и наоборот.
+    Это позволяет отправлять и получать уроки в формате JSON.
+
+    #### Параметры:
+    - **model**: Модель урока (`Lesson`), соответствующая данному сериализатору.
+    - **fields**: Все поля модели включаются в сериализацию.
+    - **read_only_fields**: Идентификатор урока доступен только для чтения.
+
+    #### Формат JSON (пример):
+    ```json
+    {
+        "id": 1,
+        "title": "Название урока",
+        "description": "Описание урока",
+        ...
+    }
+    ```
+    """
 
     class Meta:
         model = Lesson
@@ -13,22 +34,57 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор курсов.
+
+    Работает с моделью курса (`Course`) и добавляет дополнительные вычисляемые поля.
+    Например, количество уроков, входящих в курс.
+
+    #### Дополнительные поля:
+    - **many_lessons**: Поле с количеством уроков в данном курсе и списком самих уроков.
+
+    #### Параметры:
+    - **model**: Модель курса (`Course`), соответствующая этому сериализатору.
+    - **fields**: Отображаемые поля включают название, превью, описание и количество уроков.
+    - **read_only_fields**: Идентификатор курса доступен только для чтения.
+
+    #### Формат JSON (пример):
+    ```json
+    {
+        "title": "Название курса",
+        "preview": "Краткое описание курса",
+        "description": "Подробное описание курса",
+        "many_lessons": [
+            {"id": 1, "name": "Урок 1"},
+            {"id": 2, "name": "Урок 2"}
+        ]
+    }
+    ```
+    """
+
     many_lessons = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = (
-            'title',
-            'preview',
-            'description',
-            'many_lessons',
-        )
+        fields = ('title', 'preview', 'description', 'many_lessons',)
         read_only_fields = ('id',)
 
     def get_many_lessons(self, course):
-        lessons = course.lessons.all()
-        lessons_count = lessons.count()
-        lessons_serializer = LessonSerializer(lessons, many=True)
+        """
+        Возвращает строку с информацией о количестве уроков и сами уроки.
+
+        Выполняет следующее:
+        1. Извлекает все уроки, относящиеся к курсу.
+        2. Подсчитывает общее число уроков.
+        3. Сериализирует полученные уроки.
+        4. Формирует возвращаемую строку с числом уроков и сериализованными данными.
+
+        :param course: Экземпляр модели Course.
+        :return: кортеж с описанием количества уроков и их сериализацией.
+        """
+        lessons = course.lessons.all()  # извлекаем все уроки текущего курса
+        lessons_count = lessons.count()  # считаем количество уроков
+        lessons_serializer = LessonSerializer(lessons, many=True)  # сериализуем уроки
         return f'Курс содержит {lessons_count} урок(а/ов)', lessons_serializer.data
 
 
