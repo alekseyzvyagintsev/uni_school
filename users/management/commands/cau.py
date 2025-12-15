@@ -1,3 +1,4 @@
+#############################################################################################################
 from django.contrib.auth.models import Group, Permission
 from django.core.management import BaseCommand
 
@@ -5,7 +6,7 @@ from users.models import User
 
 
 def create_admin_group():
-    # Создание группы
+    # Создание группы администраторов
     admin_group = Group.objects.create(name="Администратор")
 
     # Получение всех существующих разрешений
@@ -48,7 +49,7 @@ def create_manager_group():
 
 
 def create_user_group():
-    # Создание группы
+    # Создание группы пользователей
     user_group = Group.objects.create(name="Пользователь")
 
     # Назначение необходимых разрешений
@@ -129,3 +130,6 @@ class Command(BaseCommand):
         create_user_group()
         user_group = Group.objects.get(name="Пользователь")
         user.groups.add(user_group)
+
+
+#############################################################################################################
