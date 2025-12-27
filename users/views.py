@@ -1,7 +1,7 @@
 #############################################################################################################
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, viewsets, mixins
+from rest_framework import generics, mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -19,23 +19,27 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
     Предоставляет доступ к созданию новых пользователей, просмотру существующих,
     получению детальной информации, редактированию и удалению.
     """
+
     queryset = User.objects.all()
 
     def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [AllowAny, ]  # Создание профиля доступно любому пользователю
-        elif self.action == 'list':  # Ограничиваем просмотр списка только администраторами
+        # Описание прав для каждого варианта запроса
+        if self.action == "create":
+            self.permission_classes = [
+                AllowAny,
+            ]  # Создание профиля доступно любому пользователю
+        elif self.action == "list":  # Ограничиваем просмотр списка только администраторами
             self.permission_classes = [IsAuthenticated, IsAdminUser]
-        elif self.action == 'retrieve':  # Детализированный просмотр пользователя
+        elif self.action == "retrieve":  # Детализированный просмотр пользователя
             self.permission_classes = [IsAuthenticated, IsUserOwner | IsAdminUser]
-        elif self.action in ['update', 'partial_update', 'destroy']:
+        elif self.action in ["update", "partial_update", "destroy"]:
             self.permission_classes = [IsAuthenticated, IsUserOwner | IsAdminUser]
         return super().get_permissions()
 
     def get_serializer_class(self):
         # Определим сериализатор на основе текущего пользователя и запрашиваемого объекта
-        user = getattr(self.request, 'user', None)
-        requested_user_id = self.kwargs.get('pk')
+        user = getattr(self.request, "user", None)
+        requested_user_id = self.kwargs.get("pk")
 
         # Если пользователь авторизован и запрашивает собственный профиль
         if user and str(user.id) == requested_user_id:
@@ -52,11 +56,13 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         return []
 
     def list(self, request, *args, **kwargs):
+        # Переопределен метод запроса списка пользователей
         if not request.user.is_staff:
-            raise PermissionDenied('У Вас недостаточно прав для просмотра списка пользователей')
+            raise PermissionDenied("У Вас недостаточно прав для просмотра списка пользователей")
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
+        # Переопределен метод просмотра подробностей модели пользователя
         instance = self.get_object()  # Получаем объект пользователя по указанному pk
         current_user = request.user  # Текущий авторизованный пользователь
 
@@ -64,7 +70,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         if current_user.is_superuser or current_user == instance:
             return super().retrieve(request, *args, **kwargs)
         else:
-            raise PermissionDenied('У вас недостаточно прав для просмотра профиля.')
+            raise PermissionDenied("У вас недостаточно прав для просмотра профиля.")
 
 
 class UserCreateAPIView(generics.CreateAPIView):

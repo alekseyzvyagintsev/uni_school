@@ -41,7 +41,9 @@ class CourseViewSet(viewsets.ModelViewSet):
     # Определяем правила доступа для разных действий.
     permission_classes_by_action = {
         # Курс может создать только авторизованный пользователь.
-        "create": [IsAuthenticated,],
+        "create": [
+            IsAuthenticated,
+        ],
         # Список курсов виден только авторизованным пользователям.
         "list": [IsAuthenticated, IsModer | IsUserOwner | IsAdminUser],
         # Детали конкретного курса видны только авторизованным пользователям.
@@ -62,8 +64,9 @@ class CourseViewSet(viewsets.ModelViewSet):
             return super().get_permissions()
 
     def list(self, request, *args, **kwargs):
+        # Переопределен метод запроса списка пользователей
         is_admin = request.user.is_superuser
-        is_moder = request.user.groups.filter(name='Модератор').exists()
+        is_moder = request.user.groups.filter(name="Модератор").exists()
         if is_admin or is_moder:
             return super().list(request, *args, **kwargs)
         else:
@@ -154,7 +157,6 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     )
 
 
-
 class LessonUpdateAPIView(generics.UpdateAPIView):
     """
     Представление для изменения данных об уроке.
@@ -178,7 +180,6 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         IsAuthenticated,
         IsModer | IsAdminUser | IsUserOwner,
     )
-
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
