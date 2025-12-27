@@ -11,7 +11,8 @@ dependencies = [
     "django-filter (>=25.2,<26.0)",
     "black (==25.12.0)",
     "mypy (==1.19.1)",
-    "docutils (>=0.22.3,<0.23.0)"
+    "docutils (>=0.22.3,<0.23.0)",
+    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)"
 ]
 
 

@@ -1,7 +1,7 @@
 ##############################################################################################################
 from rest_framework import serializers
 
-from materials.models import Lesson, Course
+from materials.models import Course, Lesson
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -29,8 +29,8 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = '__all__'
-        read_only_fields = ('id',)
+        fields = "__all__"
+        read_only_fields = ("id",)
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -66,8 +66,15 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('title', 'preview', 'description', 'many_lessons',)
-        read_only_fields = ('id',)
+        fields = (
+            "id",
+            "title",
+            "preview",
+            "description",
+            "owner",
+            "many_lessons",
+        )
+        read_only_fields = ("id",)
 
     def get_many_lessons(self, course):
         """
@@ -85,7 +92,7 @@ class CourseSerializer(serializers.ModelSerializer):
         lessons = course.lessons.all()  # извлекаем все уроки текущего курса
         lessons_count = lessons.count()  # считаем количество уроков
         lessons_serializer = LessonSerializer(lessons, many=True)  # сериализуем уроки
-        return f'Курс содержит {lessons_count} урок(а/ов)', lessons_serializer.data
+        return f"Курс содержит {lessons_count} урок(а/ов)", lessons_serializer.data
 
 
 ##############################################################################################################
