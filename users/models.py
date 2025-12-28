@@ -33,6 +33,7 @@ class User(AbstractUser):
         * db_table (str): Название таблицы в БД.
         * permissions (tuple): Специальные разрешения для управления пользователями.
     """
+
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
@@ -66,10 +67,7 @@ class User(AbstractUser):
 
 
 # Возможные варианты способов оплаты
-PAYMENT_METHODS = [
-    ('cash', 'Наличные'),
-    ('transfer', 'Перевод на счет')
-]
+PAYMENT_METHODS = [("cash", "Наличные"), ("transfer", "Перевод на счет")]
 
 
 class Payment(models.Model):
@@ -103,7 +101,7 @@ class Payment(models.Model):
     paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True, related_name="course")
     paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, related_name="lesson")
     amount = models.FloatField(blank=True, null=True)
-    method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default='cash')
+    method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default="cash")
 
     def __str__(self):
         if self.paid_course:

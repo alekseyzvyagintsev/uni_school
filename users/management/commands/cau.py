@@ -17,21 +17,16 @@ def create_admin_group():
 
 
 def create_manager_group():
-    # Создание группы
+    # Создание группы менеджеров.
     manager_group = Group.objects.create(name="Менеджер")
 
     # Назначение необходимых разрешений
     required_permissions = [
         "can_block_user",
         "can_view_user",
-        "can_deactivate_recipient",
-        "can_view_recipient",
-        "view_mailing",
-        "can_block_mailing",
-        "can_block_mailing_attempt",
-        "can_view_mailing_attempt",
-        "view_message",
-        "can_block_message",
+        "view_course",
+        "view_lesson",
+        "view_payment",
     ]
 
     # Преобразуем имена разрешений в объекты разрешений
@@ -48,6 +43,32 @@ def create_manager_group():
         manager_group.permissions.add(*permissions_objects)
 
 
+def create_moderator_group():
+    # Создание группы модераторов
+    moderator_group = Group.objects.create(name="Модератор")
+
+    # Назначение необходимых разрешений
+    required_permissions = [
+        "change_course",
+        "view_course",
+        "view_lesson",
+        "change_lesson",
+    ]
+
+    # Преобразуем имена разрешений в объекты разрешений
+    permissions_objects = []
+    for perm_codename in required_permissions:
+        try:
+            perm_obj = Permission.objects.get(codename=perm_codename)
+            permissions_objects.append(perm_obj)
+        except Permission.DoesNotExist:
+            print(f"Право '{perm_codename}' не найдено.")
+
+    # Присвоение выбранных разрешений группе
+    if permissions_objects:
+        moderator_group.permissions.add(*permissions_objects)
+
+
 def create_user_group():
     # Создание группы пользователей
     user_group = Group.objects.create(name="Пользователь")
@@ -57,26 +78,9 @@ def create_user_group():
         "can_view_user",
         "can_change_user",
         "can_delete_user",
-        "can_deactivate_recipient",
-        "can_add_recipient",
-        "can_view_recipient",
-        "can_change_recipient",
-        "can_delete_recipient",
-        "add_mailing",
-        "change_mailing",
-        "delete_mailing",
-        "view_mailing",
-        "can_block_mailing",
-        "can_block_mailing_attempt",
-        "can_add_mailing_attempt",
-        "can_view_mailing_attempt",
-        "can_change_mailing_attempt",
-        "can_delete_mailing_attempt",
-        "add_message",
-        "change_message",
-        "delete_message",
-        "view_message",
-        "can_block_message",
+        "view_lesson",
+        "view_course",
+        "view_payment",
     ]
 
     # Преобразуем имена разрешений в объекты разрешений
@@ -107,6 +111,18 @@ class Command(BaseCommand):
         create_admin_group()
         admin_group = Group.objects.get(name="Администратор")
         admin.groups.add(admin_group)
+
+        moderator = User.objects.create(
+            email="moderator@example.com",
+            username="moderator",
+            is_active=True,
+            is_staff=True,
+        )
+        moderator.set_password("qwer1234")
+        moderator.save()
+        create_manager_group()
+        moderator_group = Group.objects.get(name="Модератор")
+        moderator.groups.add(moderator_group)
 
         manager = User.objects.create(
             email="manager@example.com",

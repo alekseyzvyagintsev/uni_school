@@ -19,18 +19,28 @@ class Course(models.Model):
     - Таблица базы данных именуется как `"courses"`.
     """
 
-    title = models.CharField(max_length=250, verbose_name='название')  # Заголовок курса
+    title = models.CharField(max_length=250, verbose_name="название")  # Заголовок курса
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-предпросмотр курса
-    description = models.TextField(verbose_name='описание')  # Подробное описание курса
+    description = models.TextField(verbose_name="описание")  # Подробное описание курса
+    is_active = models.BooleanField(default=False)  # Флаг активности курса, по умолчанию курс выключен.
+    # Владелец курса
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Владелец курса",
+        blank=True,
+        null=True,
+        related_name="owned_courses",
+    )
 
     def __str__(self):
         return self.title  # Строковое представление курса
 
     class Meta:
-        verbose_name = "Курс"   # Наименование модели
+        verbose_name = "Курс"  # Наименование модели
         verbose_name_plural = "Курсы"  # Множественное наименование модели
-        ordering = ["title"]     # Упорядочивание по названию
-        db_table = "courses"     # Имя таблицы в БД
+        ordering = ["title"]  # Упорядочивание по названию
+        db_table = "courses"  # Имя таблицы в БД
 
 
 class Lesson(models.Model):
@@ -52,19 +62,30 @@ class Lesson(models.Model):
     - Таблица базы данных называется `"lessons"`.
     """
 
-    title = models.CharField(max_length=250, verbose_name='название')  # Заголовок урока
+    title = models.CharField(max_length=250, verbose_name="название")  # Заголовок урока
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-привью урока
-    description = models.TextField(verbose_name='описание')  # Подробное описание урока
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons') # Связанный курс (внешний ключ)
+    description = models.TextField(verbose_name="описание")  # Подробное описание урока
+    # Связанный курс (внешний ключ)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
+    is_active = models.BooleanField(default=False)  # Флаг активности урока, по умолчанию урок выключен.
+    # Владелец урока
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Владелец урока",
+        blank=True,
+        null=True,
+        related_name="owned_lessons",
+    )
 
     def __str__(self):
         return self.title  # Строковое представление урока
 
     class Meta:
-        verbose_name = "Урок"          # Наименование модели
+        verbose_name = "Урок"  # Наименование модели
         verbose_name_plural = "Уроки"  # Множественное наименование модели
-        ordering = ["title"]           # Упорядочивание по названию
-        db_table = "lessons"           # Имя таблицы в БД
+        ordering = ["title"]  # Упорядочивание по названию
+        db_table = "lessons"  # Имя таблицы в БД
 
 
 ####################################################################################################################
