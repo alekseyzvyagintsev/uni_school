@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from materials.models import Course, Lesson
+from materials.paginators import CustomPaginator
 from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
@@ -117,6 +118,7 @@ class LessonListAPIView(generics.ListAPIView):
 
     queryset = Lesson.objects.all()  # Выборка всех уроков
     serializer_class = LessonSerializer  # Сериализатор для подготовки данных
+    pagination_class = CustomPaginator
     # Список уроков виден только авторизованным пользователям:
     # Админимтраторам и модераторам список всех уроков.
     # Владельцам только свои уроки.
