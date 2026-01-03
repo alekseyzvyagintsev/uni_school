@@ -68,6 +68,7 @@ class Lesson(models.Model):
     # Связанный курс (внешний ключ)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     is_active = models.BooleanField(default=False)  # Флаг активности урока, по умолчанию урок выключен.
+    link = models.URLField(blank=True, null=True)
     # Владелец урока
     owner = models.ForeignKey(
         "users.User",
@@ -86,6 +87,14 @@ class Lesson(models.Model):
         verbose_name_plural = "Уроки"  # Множественное наименование модели
         ordering = ["title"]  # Упорядочивание по названию
         db_table = "lessons"  # Имя таблицы в БД
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("user", "course")
 
 
 ####################################################################################################################

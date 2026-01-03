@@ -1,0 +1,24 @@
+Name                      Stmts   Miss  Cover
+---------------------------------------------
+manage.py                    11      2    82%
+materials/admin.py            4      0   100%
+materials/apps.py             4      0   100%
+materials/models.py          34      2    94%
+materials/paginators.py       5      0   100%
+materials/serializer.py      24      6    75%
+materials/tests.py           72      0   100%
+materials/urls.py             9      0   100%
+materials/validators.py       9      0   100%
+materials/views.py           78     19    76%
+uni_school/settings.py       42      0   100%
+uni_school/urls.py            7      1    86%
+users/admin.py                6      0   100%
+users/apps.py                 4      0   100%
+users/models.py              43      7    84%
+users/permissions.py         13      1    92%
+users/serializer.py          23      2    91%
+users/tests.py                1      0   100%
+users/urls.py                11      0   100%
+users/views.py               64     27    58%
+---------------------------------------------
+TOTAL                       464     67    86%
