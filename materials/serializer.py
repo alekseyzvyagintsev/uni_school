@@ -1,7 +1,8 @@
 ##############################################################################################################
 from rest_framework import serializers
 
-from materials.models import Course, Lesson
+from materials.models import Course, Lesson, Subscription
+from materials.validators import ValidateYoutubeLink
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -31,6 +32,9 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = "__all__"
         read_only_fields = ("id",)
+        validators = [
+            ValidateYoutubeLink(field="link"),
+        ]
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -62,7 +66,8 @@ class CourseSerializer(serializers.ModelSerializer):
     ```
     """
 
-    many_lessons = serializers.SerializerMethodField()
+    many_lessons = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
@@ -73,6 +78,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "description",
             "owner",
             "many_lessons",
+            "is_subscribed",
         )
         read_only_fields = ("id",)
 
@@ -93,6 +99,11 @@ class CourseSerializer(serializers.ModelSerializer):
         lessons_count = lessons.count()  # считаем количество уроков
         lessons_serializer = LessonSerializer(lessons, many=True)  # сериализуем уроки
         return f"Курс содержит {lessons_count} урок(а/ов)", lessons_serializer.data
+
+    def get_is_subscribed(self, obj):
+        """Метод для вычисления статуса подписки"""
+        current_user = self.context["request"].user
+        return Subscription.objects.filter(user=current_user, course=obj).exists()
 
 
 ##############################################################################################################
