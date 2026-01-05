@@ -24,11 +24,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.admindocs",
     "django_filters",
+
     "rest_framework",
     "rest_framework_simplejwt",
     'drf_spectacular',
-    "materials",
-    "users",
+    'corsheaders',
+
+    'materials.apps.MaterialsConfig',  # Или другое название конфигурации
+    'users.apps.UsersConfig',  # Или другое название конфигурации
 ]
 
 REST_FRAMEWORK = {
@@ -59,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = "uni_school.urls"
@@ -66,10 +70,11 @@ ROOT_URLCONF = "uni_school.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [], # [BASE_DIR / "templates"] применить в случае использования шаблонов
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                'django.template.context_processors.debug',
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -122,8 +127,12 @@ USE_I18N = True
 
 USE_TZ = True
 
+# URL-путь, используемый браузером для обращения к статическим ресурсам
 STATIC_URL = "static/"
 
+# Относительный путь для сбора статических файлов
+STATIC_ROOT = BASE_DIR / 'collected_static'
+# Исходный путь для хранения статики в приложении
 STATICFILES_DIRS = (BASE_DIR / "static",)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -151,6 +160,17 @@ CACHES = {
 
 APSCHEDULER_DATETIME_FORMAT = "d-m-Y H:i:s"
 SCHEDULER_DEFAULT = True
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',  # Замените на адрес вашего фронтенд-сервера
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com", #  Замените на адрес вашего фронтенд-сервера
+    'http://localhost:8000',   # и добавьте адрес бэкенд-сервера
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
 
 LOGGING = {
     "version": 1,
@@ -192,5 +212,19 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'uni_school API',
+    'DESCRIPTION': 'Test description',
+    'VERSION': 'v1',
+    'TERMS_OF_SERVICE': 'https://www.google.com/policies/terms/',
+    'CONTACT': {
+        'email': 'contact@snippets.local'
+    },
+    'LICENSE': {
+        'name': 'BSD License'
+    },
+}
+
 
 ############################################################################################
