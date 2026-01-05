@@ -1,6 +1,6 @@
 #############################################################################################################
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
@@ -13,11 +13,29 @@ from users.serializer import PaymentSerializer, PrivateUserSerializer, PublicUse
 
 class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
-    Представление для управления пользователями.
+    ViewSet для работы с моделями пользователей.
 
-    Включает CRUD-функционал для работы с объектами пользователей.
-    Предоставляет доступ к созданию новых пользователей, просмотру существующих,
-    получению детальной информации, редактированию и удалению.
+    Обеспечивает базовые операции CRUD над пользователями, включая создание нового пользователя,
+    получение общего списка пользователей (ограничено правами доступа),
+    детализацию конкретного пользователя, обновление и удаление.
+
+    Доступ к различным действиям контролируется системой разрешений:
+    - `create`: разрешено анонимному пользователю (AllowAny).
+    - `list`: ограничено администратором системы (IsAuthenticated & IsAdminUser).
+    - `retrieve`, `update`, `partial_update` и `destroy`: доступ предоставляется либо владельцу аккаунта,
+      либо сотруднику с ролью администратора (IsAuthenticated & (IsUserOwner | IsAdminUser)).
+
+    Для сериализации используется два типа сериалайзера:
+    - `PrivateUserSerializer`: для приватных данных самого пользователя.
+    - `PublicUserSerializer`: для публичного отображения чужих профилей.
+
+    Примечания:
+    - Обычные пользователи видят только собственные профили.
+    - Администратор видит полный список всех пользователей.
+    - Анонимные пользователи имеют право только создать новый аккаунт.
+    - Для метода retrieve применен декоратор extend_schema. В данном случае он добавляет схему для сериализатора
+    PrivateUserSerializer так-как выбор сериализатора зависит от прав пользователя, то данный сериализатор не виден
+    по умолчанию для swagger UI
     """
 
     queryset = User.objects.all()
@@ -61,6 +79,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
             raise PermissionDenied("У Вас недостаточно прав для просмотра списка пользователей")
         return super().list(request, *args, **kwargs)
 
+    @extend_schema(responses={200: PrivateUserSerializer})
     def retrieve(self, request, *args, **kwargs):
         # Переопределен метод просмотра подробностей модели пользователя
         instance = self.get_object()  # Получаем объект пользователя по указанному pk
