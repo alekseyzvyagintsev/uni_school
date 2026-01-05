@@ -39,8 +39,6 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     country = models.CharField(max_length=50, blank=True, null=True)
     is_active = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=100, blank=True, null=True)
-    token_expires_at = models.DateTimeField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
