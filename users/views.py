@@ -1,23 +1,57 @@
 #############################################################################################################
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED
 
 from users.models import Payment, User
 from users.permissions import IsAdminUser, IsUserOwner
 from users.serializer import PaymentSerializer, PrivateUserSerializer, PublicUserSerializer
 
 
+@extend_schema(tags=["Users"])
+@extend_schema_view(
+    retrieve=extend_schema(
+        summary="Детальная информация о пользователе",
+    ),
+    list=extend_schema(
+        summary="Получение списка пользователей.",
+    ),
+    update=extend_schema(
+        summary="Полное (PUT) обновление пользователя.",
+    ),
+    partial_update=extend_schema(
+        summary="Частичное (PATCH) обновление пользователя.",
+    ),
+    destroy=extend_schema(
+        summary="Удаление пользователя.",
+    ),
+)
 class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
     ViewSet для работы с моделями пользователей.
 
     Обеспечивает базовые операции CRUD над пользователями, включая создание нового пользователя,
-    получение общего списка пользователей (ограничено правами доступа),
+    получение общего списка пользователей ,
     детализацию конкретного пользователя, обновление и удаление.
+
+    #### Основные возможности:
+    - Просмотр списка пользователей (ограничено правами доступа).
+    - Детальная информация о каждом пользователей (ограничено правами доступа).
+    - Редактирование сведений о пользователях (ограничено правами доступа).
+    - Возможность удалить пользователя (ограничено правами доступа).
+
+    #### Методы HTTP:
+    - GET /users/: Получение списка пользователей.
+    - GET /users/id/: Информация о конкретном пользователе.
+    - PUT /users/id/: Полное обновление пользователя.
+    - PATCH /users/id/: Частичное обновление пользователя.
+    - DELETE /users/id/: Удаление пользователя.
 
     Доступ к различным действиям контролируется системой разрешений:
     - `create`: разрешено анонимному пользователю (AllowAny).
@@ -74,7 +108,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         return []
 
     def list(self, request, *args, **kwargs):
-        # Переопределен метод запроса списка пользователей
+        # Метод запроса списка пользователей
         if not request.user.is_staff:
             raise PermissionDenied("У Вас недостаточно прав для просмотра списка пользователей")
         return super().list(request, *args, **kwargs)
@@ -91,19 +125,49 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         else:
             raise PermissionDenied("У вас недостаточно прав для просмотра профиля.")
 
+    def update(self, request, *args, **kwargs):
+        # Метод PUT остается не низменным.
+        pass
 
-class UserCreateAPIView(generics.CreateAPIView):
+    def partial_update(self, request, *args, **kwargs):
+        # Метод PATCH остается не низменным
+        pass
+
+    def destroy(self, request, *args, **kwargs):
+        # Метод DELETE остается не низменным
+        pass
+
+
+class UserCreateAPIView(CreateAPIView):
     """
     Представление для создания нового пользователя.
 
     Метод POST используется для добавления новой записи пользователя.
     Полностью обрабатывается созданием экземпляра объекта User.
+
+    #### Возможности:
+    - Только создание нового пользователя.
+
+    #### Метод HTTP:
+    - POST /register/: Отправка формы для создания пользователя.
     """
 
     # Сериализатор для обработки входящей информации
     serializer_class = PublicUserSerializer
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=['Users'],
+        summary="Регистрация нового пользователя",
+        description="Создает нового пользователя с указанным именем, почтой и паролем.",
+        request=PublicUserSerializer,
+        responses={HTTP_201_CREATED: PublicUserSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
+@extend_schema(tags=["Payments"])
 class PaymentCreateAPIView(generics.CreateAPIView):
     """
     Представление для создания новых платежных операций.
@@ -116,6 +180,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
 
 
+@extend_schema(tags=["Payments"])
 class PaymentListAPIView(generics.ListAPIView):
     """
     Представление для отображения списка платежей.
@@ -140,6 +205,7 @@ class PaymentListAPIView(generics.ListAPIView):
     ordering_fields = ("date",)
 
 
+@extend_schema(tags=["Payments"])
 class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     """
     Представление для просмотра детальной информации о конкретной оплате.
@@ -154,6 +220,7 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = PaymentSerializer
 
 
+@extend_schema(tags=["Payments"])
 class PaymentUpdateAPIView(generics.UpdateAPIView):
     """
     Представление для обновления существующего платежа.
@@ -168,6 +235,7 @@ class PaymentUpdateAPIView(generics.UpdateAPIView):
     serializer_class = PaymentSerializer
 
 
+@extend_schema(tags=["Payments"])
 class PaymentDestroyAPIView(generics.DestroyAPIView):
     """
     Представление для удаления отдельного платежа.

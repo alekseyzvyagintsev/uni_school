@@ -1,4 +1,5 @@
 ##############################################################################################################
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
 
+@extend_schema(tags=["Courses"])
 class CourseViewSet(viewsets.ModelViewSet):
     """
     Представление для полного управления учебными курсами.
@@ -23,11 +25,11 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     #### Методы HTTP:
     - GET /courses/: Получение списка курсов.
-    - GET /courses/<id>/: Информация о конкретном курсе.
+    - GET /courses/id/: Информация о конкретном курсе.
     - POST /courses/: Создание нового курса.
-    - PUT /courses/<id>/: Полное обновление курса.
-    - PATCH /courses/<id>/: Частичное обновление курса.
-    - DELETE /courses/<id>/: Удаление курса.
+    - PUT /courses/id/: Полное обновление курса.
+    - PATCH /courses/id/: Частичное обновление курса.
+    - DELETE /courses/id/: Удаление курса.
     """
 
     queryset = Course.objects.all()  # Выборка всех курсов
@@ -76,6 +78,7 @@ class CourseViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
 
+@extend_schema(tags=["Lessons"])
 class LessonCreateAPIView(generics.CreateAPIView):
     """
     Представление для создания новых уроков.
@@ -102,6 +105,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
         serializer.save(owner=self.request.user)
 
 
+@extend_schema(tags=["Lessons"])
 class LessonListAPIView(generics.ListAPIView):
     """
     Представление для отображения списка уроков.
@@ -133,6 +137,7 @@ class LessonListAPIView(generics.ListAPIView):
         return None
 
 
+@extend_schema(tags=["Lessons"])
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
     """
     Представление для получения детальной информации об одном уроке.
@@ -157,6 +162,7 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     )
 
 
+@extend_schema(tags=["Lessons"])
 class LessonUpdateAPIView(generics.UpdateAPIView):
     """
     Представление для изменения данных об уроке.
@@ -182,6 +188,7 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     )
 
 
+@extend_schema(tags=["Lessons"])
 class LessonDestroyAPIView(generics.DestroyAPIView):
     """
     Представление для удаления урока.
