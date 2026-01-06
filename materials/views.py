@@ -1,5 +1,5 @@
 ##############################################################################################################
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +12,26 @@ from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
 
 @extend_schema(tags=["Courses"])
+@extend_schema_view(
+    create=extend_schema(
+        summary="Создание курса",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о курсе",
+    ),
+    list=extend_schema(
+        summary="Получение списка курсов.",
+    ),
+    update=extend_schema(
+        summary="Полное (PUT) обновление сурса.",
+    ),
+    partial_update=extend_schema(
+        summary="Частичное (PATCH) обновление курса.",
+    ),
+    destroy=extend_schema(
+        summary="Удаление курса.",
+    ),
+)
 class CourseViewSet(viewsets.ModelViewSet):
     """
     Представление для полного управления учебными курсами.
@@ -101,6 +121,13 @@ class LessonCreateAPIView(generics.CreateAPIView):
         ~IsModer,
     )
 
+    @extend_schema(
+        summary="Создание нового урока",
+        description="Создает новый с указанным названия, описания и принадлежность к курсу.",
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Функция автоматически добавляет текущего аутентифицированного пользователя
         в поле owner объекта урока."""
@@ -130,6 +157,12 @@ class LessonListAPIView(generics.ListAPIView):
         IsAuthenticated,
         IsModer | IsAdminUser | IsUserOwner,
     )
+
+    @extend_schema(
+        summary="Получение списка уроков",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -163,6 +196,12 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
         IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Получение подробностей об уроке",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Lessons"])
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -189,6 +228,18 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Полное изменение урок",
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Частичное изменение урока"
+    )
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Lessons"])
 class LessonDestroyAPIView(generics.DestroyAPIView):
@@ -213,6 +264,12 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
         ~IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Удаление урока",
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Subscribe"])
 class SubscribeToCourse(APIView):
@@ -236,6 +293,10 @@ class SubscribeToCourse(APIView):
 
     queryset = Subscription.objects.all()
     serializer_class = LessonSerializer
+
+    @extend_schema(
+        summary="Добавляет или удаляет подписку текущего пользователя на указанный курс.",
+    )
 
     def post(self, request):
         user = request.user

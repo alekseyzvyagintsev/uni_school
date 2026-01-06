@@ -160,8 +160,6 @@ class UserCreateAPIView(CreateAPIView):
         tags=["Users"],
         summary="Регистрация нового пользователя",
         description="Создает нового пользователя с указанным именем, почтой и паролем.",
-        request=PublicUserSerializer,
-        responses={HTTP_201_CREATED: PublicUserSerializer},
     )
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
@@ -179,6 +177,12 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     # Сериализатор для обработки входящей информации
     serializer_class = PaymentSerializer
 
+    @extend_schema(
+        summary="Создание платежа",
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Payments"])
 class PaymentListAPIView(generics.ListAPIView):
@@ -187,11 +191,11 @@ class PaymentListAPIView(generics.ListAPIView):
 
     Позволяет получать полный список записей о платежах с поддержкой фильтрации
     и сортировки.
-    Доступны поля фильтрации:
+    #### Доступны поля фильтрации:
       - paid_course (оплаченный курс),
       - paid_lesson (оплаченное занятие),
       - method (метод оплаты).
-    Поля сортировки:
+    #### Поля сортировки:
       - date (дата платежа).
     """
 
@@ -203,6 +207,12 @@ class PaymentListAPIView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ("paid_course", "paid_lesson", "method")
     ordering_fields = ("date",)
+
+    @extend_schema(
+        summary="Получение списка платежей",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 @extend_schema(tags=["Payments"])
@@ -219,6 +229,12 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     # Сериализация результата
     serializer_class = PaymentSerializer
 
+    @extend_schema(
+        summary="Получение подробностей о платеже",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Payments"])
 class PaymentUpdateAPIView(generics.UpdateAPIView):
@@ -234,6 +250,18 @@ class PaymentUpdateAPIView(generics.UpdateAPIView):
     # Инструмент сериализации обновляемых данных
     serializer_class = PaymentSerializer
 
+    @extend_schema(
+        summary="Полное изменение платежа",
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Частичное изменение платежа"
+    )
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Payments"])
 class PaymentDestroyAPIView(generics.DestroyAPIView):
@@ -248,6 +276,12 @@ class PaymentDestroyAPIView(generics.DestroyAPIView):
     queryset = Payment.objects.all()
     # Сериализатор для подтверждения операции
     serializer_class = PaymentSerializer
+
+    @extend_schema(
+        summary="Удаление платежа",
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
 #############################################################################################################
