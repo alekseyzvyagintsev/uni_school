@@ -1,10 +1,12 @@
 ##############################################################################################################
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, viewsets
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from materials.models import Course, Lesson
+from materials.models import Course, Lesson, Subscription
 from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
@@ -210,6 +212,50 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
         IsAuthenticated,
         ~IsModer | IsAdminUser | IsUserOwner,
     )
+
+
+@extend_schema(tags=["Subscribe"])
+class SubscribeToCourse(APIView):
+    """
+    Представление для управления подписками пользователей на курсы.
+
+    Методы:
+        POST: Добавляет или удаляет подписку текущего пользователя на указанный курс.
+
+    Параметры запроса:
+        course_id (int): ID курса, на который подписывается или отказывается пользователь.
+
+    Возвращаемые значения:
+        Успех (HTTP 200 OK):
+            {"message": "Подписка добавлена."}
+            {"message": "Подписка удалена."}
+
+        Ошибка (HTTP 400 Bad Request):
+            {"error": "<сообщение об ошибке>"}
+    """
+
+    queryset = Subscription.objects.all()
+    serializer_class = LessonSerializer
+
+    def post(self, request):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        try:
+            course = get_object_or_404(Course, pk=course_id)
+
+            subscription_exists = Subscription.objects.filter(user=user, course=course).exists()
+
+            if subscription_exists:
+                Subscription.objects.filter(user=user, course=course).delete()
+                message = "Подписка удалена."
+            else:
+                Subscription.objects.create(user=user, course=course)
+                message = "Подписка добавлена."
+
+            return Response({"message": message}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 ##############################################################################################################

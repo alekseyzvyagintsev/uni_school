@@ -157,7 +157,7 @@ class UserCreateAPIView(CreateAPIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
-        tags=['Users'],
+        tags=["Users"],
         summary="Регистрация нового пользователя",
         description="Создает нового пользователя с указанным именем, почтой и паролем.",
         request=PublicUserSerializer,

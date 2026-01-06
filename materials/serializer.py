@@ -4,6 +4,7 @@ from typing import Any
 from rest_framework import serializers
 
 from materials.models import Course, Lesson
+from materials.validators import ValidateYoutubeLink
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -33,6 +34,9 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = "__all__"
         read_only_fields = ("id",)
+        validators = [
+            ValidateYoutubeLink(field="link"),
+        ]
 
 
 class CourseSerializer(serializers.ModelSerializer):
