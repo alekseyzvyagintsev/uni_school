@@ -31,7 +31,6 @@ class User(AbstractUser):
         * verbose_name_plural (str): Название множества записей.
         * ordering (list): Порядок сортировки объектов.
         * db_table (str): Название таблицы в БД.
-        * permissions (tuple): Специальные разрешения для управления пользователями.
     """
 
     email = models.EmailField(unique=True)
@@ -55,13 +54,6 @@ class User(AbstractUser):
             "username",
         ]
         db_table = "user"
-        permissions = [
-            ("can_block_user", "can_block_user"),
-            ("can_view_user", "can_view_user"),
-            ("can_add_user", "can_add_user"),
-            ("can_change_user", "can_change_user"),
-            ("can_delete_user", "can_delete_user"),
-        ]
 
 
 # Возможные варианты способов оплаты
@@ -82,6 +74,7 @@ class Payment(models.Model):
         * paid_lesson (ForeignKey): Связанный урок, который был оплачен (может быть пустым).
         * amount (FloatField): Размер оплаты (может быть пустым).
         * method (CharField): Способ оплаты (наличные, Перевод на счёт).
+        * sum (PositiveIntegerField): Сумма платежа устанавливается автоматически при выборе урока или курса
 
     Методы:
         * __str__(): Строковое представление платежа с указанием пользователя, предмета оплаты и суммы.
@@ -94,12 +87,19 @@ class Payment(models.Model):
         * permissions (tuple): Разрешения для добавления, просмотра, изменения и удаления платежей.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payment")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
     date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
-    paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True, related_name="course")
-    paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, related_name="lesson")
-    amount = models.FloatField(blank=True, null=True)
+    paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True, related_name="payments")
+    paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, related_name="payments")
     method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default="cash")
+    amount = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.paid_course:
+            self.amount = self.paid_course.price
+        elif self.paid_lesson:
+            self.amount = self.paid_lesson.price
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.paid_course:
@@ -117,12 +117,6 @@ class Payment(models.Model):
         verbose_name_plural = "Платежи"
         db_table = "payment"
         ordering = ["-date"]
-        permissions = [
-            ("can_add_payment", "can_add_payment"),
-            ("can_view_payment", "can_view_payment"),
-            ("can_change_payment", "can_change_payment"),
-            ("can_delete_payment", "can_delete_payment"),
-        ]
         unique_together = (("user", "paid_course"), ("user", "paid_lesson"))  # Уникальность по полям
 
 
