@@ -1,17 +1,18 @@
 #############################################################################################################
+import stripe
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, mixins, viewsets
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.filters import OrderingFilter
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED
 
+from materials.models import Course, Lesson
 from users.models import Payment, User
 from users.permissions import IsAdminUser, IsUserOwner
 from users.serializer import PaymentSerializer, PrivateUserSerializer, PublicUserSerializer
+from users.services import create_stripe_session
 
 
 @extend_schema(tags=["Users"])
@@ -171,11 +172,83 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     Представление для создания новых платежных операций.
 
     Метод POST используется для добавления новой записи платежа.
-    Полностью обрабатывается созданием экземпляра объекта Payment.
+
+    Обработка включает создание нового экземпляра объекта Payment с последующим созданием соответствующего товара и цены в сервисе Stripe.
+    Для каждой успешной операции генерируется уникальная ссылка на страницу оплаты.
+
+    Логика обработки следующая:
+      - Пользователь выбирает либо курс, либо урок для оплаты.
+      - Проверяется обязательное условие: должно быть выбрано ровно одно из двух полей ("paid_course" или "paid_lesson").
+      - Далее создается товар в Stripe на основании выбранного элемента (курса или урока).
+      - После успешного создания товара формируется цена, сессия оплаты и сохраняются дополнительные поля сессии в модели Payment.
+
+    Параметры фильтра позволяют гибко искать созданные платежи по таким критериям, как выбранный курс, урок или способ оплаты.
     """
 
-    # Сериализатор для обработки входящей информации
+    queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["paid_course", "paid_lesson", "method"]  # Фильтры по курсу, уроку и методу оплаты
+    search_fields = ["user__email", "course__name"]  # Поиск по email пользователя и названию курса
+    ordering_fields = ["date"]  # Возможность сортировки по дате платежа
+
+    def perform_create(self, serializer):
+        # Получаем данные из запроса
+        data = self.request.data
+
+        # Определяем тип объекта (курс или урок)
+        object_type = data.get('product')
+        object_id = data.get('id')
+
+        if object_type == 'Course':
+            course_or_lesson = Course.objects.get(id=object_id)
+        elif object_type == 'Lesson':
+            course_or_lesson = Lesson.objects.get(id=object_id)
+        else:
+            raise ValueError("Необходимо передать объект типа Course или Lesson.")
+
+        # Данные метода оплаты
+        method = data.get("method")
+        user = self.request.user
+
+        # Создаем запись платежа
+        payment = serializer.save(user=user,)
+        payment.title = data.get('title')
+        payment.description = data.get('description')
+        payment.method=method
+        payment.paid_course = course_or_lesson if isinstance(course_or_lesson, Course) else None
+        payment.paid_lesson = course_or_lesson if isinstance(course_or_lesson, Lesson) else None
+        payment.save()
+        print(f'mey be cash {payment}')
+
+        # Если оплата производится через Stripe
+        if method == "transfer":
+            # Формируем наименование продукта для Stripe
+            stripe_product_name = f"{type(course_or_lesson).__name__.capitalize()} '{course_or_lesson.title}'"
+
+            # Создаем продукт в Stripe
+            stripe_product = stripe.Product.create(
+                name=stripe_product_name,
+                description=course_or_lesson.description,
+                metadata={"prod_id_from_db": course_or_lesson.id}
+            )
+
+            # Создаем цену в Stripe
+            stripe_price = stripe.Price.create(
+                product=stripe_product.id,
+                unit_amount=int(course_or_lesson.price * 100),
+                currency="rub"
+            )
+
+            # Создаем сессию Stripe и фиксируем её ID и ссылку
+            session_id, session_url = create_stripe_session(stripe_price)
+
+            # Сохраняем дополнительную информацию в модели Payment
+            payment.ext_pay_sess_id = session_id
+            payment.link = session_url
+            payment.save()
+            print(f'transfer {payment}')
+
 
     @extend_schema(
         summary="Создание платежа",
