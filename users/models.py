@@ -1,4 +1,6 @@
 #############################################################################################
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -87,13 +89,14 @@ class Payment(models.Model):
         * permissions (tuple): Разрешения для добавления, просмотра, изменения и удаления платежей.
     """
 
+    ext_pay_sess_id = models.CharField(max_length=255, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
     date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, blank=True, null=True, related_name="payments")
     paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, related_name="payments")
     method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default="cash")
     amount = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
-    link = models.URLField(blank=True, null=True)
+    link = models.URLField(max_length=500, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.paid_course:
