@@ -93,6 +93,7 @@ class Payment(models.Model):
     paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, related_name="payments")
     method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default="cash")
     amount = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.paid_course:
@@ -117,7 +118,10 @@ class Payment(models.Model):
         verbose_name_plural = "Платежи"
         db_table = "payment"
         ordering = ["-date"]
-        unique_together = (("user", "paid_course"), ("user", "paid_lesson"))  # Уникальность по полям
+        unique_together = (
+            ("user", "paid_course"), # Платёж за курс уникальным для каждого пользователя
+            ("user", "paid_lesson")  # Платёж за урок уникальным для каждого пользователя
+        )
 
 
 #############################################################################################

@@ -8,7 +8,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("materials", "0004_course_price_lesson_link_lesson_price_subscription"),
         ("users", "0006_remove_user_activation_token_and_more"),
     ]
 
