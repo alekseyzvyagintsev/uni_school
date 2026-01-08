@@ -7,7 +7,10 @@ from users.models import User
 
 def create_admin_group():
     # Создание группы администраторов
-    admin_group = Group.objects.create(name="Администратор")
+    try:
+        admin_group = Group.objects.get(name="Администратор")
+    except Group.DoesNotExist:
+        admin_group = Group.objects.create(name="Администратор")
 
     # Получение всех существующих разрешений
     all_permissions = list(Permission.objects.all())
@@ -16,132 +19,69 @@ def create_admin_group():
     admin_group.permissions.add(*all_permissions)
 
 
-def create_manager_group():
-    # Создание группы менеджеров.
-    manager_group = Group.objects.create(name="Менеджер")
-
-    # Назначение необходимых разрешений
-    required_permissions = [
-        "can_block_user",
-        "can_view_user",
-        "view_course",
-        "view_lesson",
-        "view_payment",
-    ]
-
-    # Преобразуем имена разрешений в объекты разрешений
-    permissions_objects = []
-    for perm_codename in required_permissions:
-        try:
-            perm_obj = Permission.objects.get(codename=perm_codename)
-            permissions_objects.append(perm_obj)
-        except Permission.DoesNotExist:
-            print(f"Право '{perm_codename}' не найдено.")
-
-    # Присвоение выбранных разрешений группе
-    if permissions_objects:
-        manager_group.permissions.add(*permissions_objects)
-
-
 def create_moderator_group():
     # Создание группы модераторов
-    moderator_group = Group.objects.create(name="Модератор")
-
-    # Назначение необходимых разрешений
-    required_permissions = [
-        "change_course",
-        "view_course",
-        "view_lesson",
-        "change_lesson",
-    ]
-
-    # Преобразуем имена разрешений в объекты разрешений
-    permissions_objects = []
-    for perm_codename in required_permissions:
-        try:
-            perm_obj = Permission.objects.get(codename=perm_codename)
-            permissions_objects.append(perm_obj)
-        except Permission.DoesNotExist:
-            print(f"Право '{perm_codename}' не найдено.")
-
-    # Присвоение выбранных разрешений группе
-    if permissions_objects:
-        moderator_group.permissions.add(*permissions_objects)
+    try:
+        Group.objects.get(name="Модератор")
+    except Group.DoesNotExist:
+        Group.objects.create(name="Модератор")
 
 
 def create_user_group():
     # Создание группы пользователей
-    user_group = Group.objects.create(name="Пользователь")
-
-    # Назначение необходимых разрешений
-    required_permissions = [
-        "can_view_user",
-        "can_change_user",
-        "can_delete_user",
-        "view_lesson",
-        "view_course",
-        "view_payment",
-    ]
-
-    # Преобразуем имена разрешений в объекты разрешений
-    permissions_objects = []
-    for perm_codename in required_permissions:
-        try:
-            perm_obj = Permission.objects.get(codename=perm_codename)
-            permissions_objects.append(perm_obj)
-        except Permission.DoesNotExist:
-            print(f"Право '{perm_codename}' не найдено.")
-
-    # Присвоение выбранных разрешений группе
-    if permissions_objects:
-        user_group.permissions.add(*permissions_objects)
+    try:
+        Group.objects.get(name="Пользователь")
+    except Group.DoesNotExist:
+        Group.objects.create(name="Пользователь")
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        admin = User.objects.create(
-            email="admin@example.com",
-            username="admin",
-            is_active=True,
-            is_staff=True,
-            is_superuser=True,
-        )
+        try:
+            admin = User.objects.get(email="admin@example.com")
+        except User.DoesNotExist:
+            admin = User.objects.create(
+                email="admin@example.com",
+            )
+        print(f"admin.id {admin.id}")
+        admin.username = "admin"
         admin.set_password("qwer1234")
+        admin.is_active = True
+        admin.is_staff = True
+        admin.is_superuser = True
         admin.save()
         create_admin_group()
         admin_group = Group.objects.get(name="Администратор")
         admin.groups.add(admin_group)
 
-        moderator = User.objects.create(
-            email="moderator@example.com",
-            username="moderator",
-            is_active=True,
-            is_staff=True,
-        )
+        try:
+            moderator = User.objects.get(
+                email="moderator@example.com")
+        except User.DoesNotExist:
+            moderator = User.objects.create(
+                email="moderator@example.com",
+            )
+        print(f"moderator.id {moderator.id}")
+        moderator.username = "moderator"
         moderator.set_password("qwer1234")
+        moderator.is_active = True
+        moderator.is_staff = True
         moderator.save()
-        create_manager_group()
+        create_moderator_group()
         moderator_group = Group.objects.get(name="Модератор")
         moderator.groups.add(moderator_group)
 
-        manager = User.objects.create(
-            email="manager@example.com",
-            username="manager",
-            is_active=True,
-            is_staff=True,
-        )
-        manager.set_password("qwer1234")
-        manager.save()
-        create_manager_group()
-        manager_group = Group.objects.get(name="Менеджер")
-        manager.groups.add(manager_group)
-
-        user = User.objects.create(
-            email="user@example.com",
-            username="user",
-            is_active=True,
-        )
+        try:
+            user = User.objects.create(
+                email="user@example.com")
+        except User.DoesNotExist:
+            user = User.objects.create(
+                email="user@example.com",
+            )
+        print(f"user.id {user.id}")
+        user.username = "user"
         user.set_password("qwer1234")
+        user.is_active = True
         user.save()
         create_user_group()
         user_group = Group.objects.get(name="Пользователь")
