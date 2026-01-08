@@ -70,6 +70,7 @@ class LessonTests(APITestCase):
                 "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 "course": self.course.id,
                 "owner": self.user.id,
+                'price': None,
             },
         )
 
@@ -96,6 +97,7 @@ class LessonTests(APITestCase):
                     "link": None,
                     "course": self.course.id,
                     "owner": self.user.id,
+                    'price': None,
                 },
             ],
         )
@@ -118,6 +120,7 @@ class LessonTests(APITestCase):
                 "link": None,
                 "course": self.course.id,
                 "owner": self.user.id,
+                'price': None,
             },
         )
 
@@ -144,6 +147,7 @@ class LessonTests(APITestCase):
                 "link": None,
                 "course": self.course.id,
                 "owner": self.user.id,
+                'price': None,
             },
         )
 
