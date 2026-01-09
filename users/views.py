@@ -9,6 +9,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from materials.models import Course, Lesson
+from materials.paginators import CustomPageNumberPagination
 from users.models import Payment, User
 from users.permissions import IsAdminUser, IsUserOwner
 from users.serializer import PaymentSerializer, PrivateUserSerializer, PublicUserSerializer
@@ -73,7 +74,8 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
     по умолчанию для swagger UI
     """
 
-    queryset = User.objects.all()
+    queryset = User.objects.all()  # Выборка всех пользователей
+    pagination_class = CustomPageNumberPagination  # Кастомный постраничный пагинатор
 
     def get_permissions(self):
         # Описание прав для каждого варианта запроса

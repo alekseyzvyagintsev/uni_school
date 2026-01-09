@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from materials.models import Course, Lesson, Subscription
+from materials.paginators import CustomPageNumberPagination
 from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
@@ -56,6 +57,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     queryset = Course.objects.all()  # Выборка всех курсов
     serializer_class = CourseSerializer  # Сериализатор для преобразования моделей в JSON
+    pagination_class = CustomPageNumberPagination  # Кастомный постраничный пагинатор
 
     def perform_create(self, serializer):
         """Функция автоматически добавляет текущего аутентифицированного пользователя
@@ -98,6 +100,15 @@ class CourseViewSet(viewsets.ModelViewSet):
             queryset = self.get_queryset().filter(owner=request.user)
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
+
+    def get_serializer_context(self):
+        """
+        Возвращает словарь с контекстом, который сериализатор сможет использовать для обработки.
+        Здесь передаём экземпляр запроса (request), чтобы сериализатор имел доступ к пользователю.
+        """
+        context = super().get_serializer_context()
+        context.update({"request": self.request})  # Добавляем объект запроса в контекст
+        return context
 
 
 @extend_schema(tags=["Lessons"])
@@ -150,6 +161,7 @@ class LessonListAPIView(generics.ListAPIView):
 
     queryset = Lesson.objects.all()  # Выборка всех уроков
     serializer_class = LessonSerializer  # Сериализатор для подготовки данных
+    pagination_class = CustomPageNumberPagination  # Кастомный постраничный пагинатор
     # Список уроков виден только авторизованным пользователям:
     # Админимтраторам и модераторам список всех уроков.
     # Владельцам только свои уроки.
@@ -297,6 +309,31 @@ class SubscribeToCourse(APIView):
     @extend_schema(
         summary="Добавляет или удаляет подписку текущего пользователя на указанный курс.",
     )
+
+    def post(self, request):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        try:
+            course = get_object_or_404(Course, pk=course_id)
+
+            subscription_exists = Subscription.objects.filter(user=user, course=course).exists()
+
+            if subscription_exists:
+                Subscription.objects.filter(user=user, course=course).delete()
+                message = "Подписка удалена."
+            else:
+                Subscription.objects.create(user=user, course=course)
+                message = "Подписка добавлена."
+
+            return Response({"message": message}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
+class SubscribeToCourse(APIView):
+    queryset = Subscription.objects.all()
+    serializer_class = LessonSerializer
 
     def post(self, request):
         user = request.user
