@@ -1,7 +1,9 @@
 ##############################################################################################################
+from typing import Any
+
 from rest_framework import serializers
 
-from materials.models import Course, Lesson, Subscription
+from materials.models import Course, Lesson
 from materials.validators import ValidateYoutubeLink
 
 
@@ -60,8 +62,8 @@ class CourseSerializer(serializers.ModelSerializer):
         "description": "Подробное описание курса",
         "many_lessons": [
             {"id": 1, "name": "Урок 1"},
-            {"id": 2, "name": "Урок 2"}
-        ]
+            {"id": 2, "name": "Урок 2"},
+        ],
     }
     ```
     """
@@ -82,7 +84,7 @@ class CourseSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-    def get_many_lessons(self, course):
+    def get_many_lessons(self, course) -> tuple[str, dict[str, Any]]:
         """
         Возвращает строку с информацией о количестве уроков и сами уроки.
 
@@ -93,7 +95,7 @@ class CourseSerializer(serializers.ModelSerializer):
         4. Формирует возвращаемую строку с числом уроков и сериализованными данными.
 
         :param course: Экземпляр модели Course.
-        :return: кортеж с описанием количества уроков и их сериализацией.
+        :return: Кортеж с описанием количества уроков и их сериализацией.
         """
         lessons = course.lessons.all()  # извлекаем все уроки текущего курса
         lessons_count = lessons.count()  # считаем количество уроков

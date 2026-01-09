@@ -1,4 +1,5 @@
 ##############################################################################################################
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +12,27 @@ from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
 
 
+@extend_schema(tags=["Courses"])
+@extend_schema_view(
+    create=extend_schema(
+        summary="Создание курса",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о курсе",
+    ),
+    list=extend_schema(
+        summary="Получение списка курсов.",
+    ),
+    update=extend_schema(
+        summary="Полное (PUT) обновление сурса.",
+    ),
+    partial_update=extend_schema(
+        summary="Частичное (PATCH) обновление курса.",
+    ),
+    destroy=extend_schema(
+        summary="Удаление курса.",
+    ),
+)
 class CourseViewSet(viewsets.ModelViewSet):
     """
     Представление для полного управления учебными курсами.
@@ -26,11 +48,11 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     #### Методы HTTP:
     - GET /courses/: Получение списка курсов.
-    - GET /courses/<id>/: Информация о конкретном курсе.
+    - GET /courses/id/: Информация о конкретном курсе.
     - POST /courses/: Создание нового курса.
-    - PUT /courses/<id>/: Полное обновление курса.
-    - PATCH /courses/<id>/: Частичное обновление курса.
-    - DELETE /courses/<id>/: Удаление курса.
+    - PUT /courses/id/: Полное обновление курса.
+    - PATCH /courses/id/: Частичное обновление курса.
+    - DELETE /courses/id/: Удаление курса.
     """
 
     queryset = Course.objects.all()  # Выборка всех курсов
@@ -89,6 +111,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         return context
 
 
+@extend_schema(tags=["Lessons"])
 class LessonCreateAPIView(generics.CreateAPIView):
     """
     Представление для создания новых уроков.
@@ -109,12 +132,20 @@ class LessonCreateAPIView(generics.CreateAPIView):
         ~IsModer,
     )
 
+    @extend_schema(
+        summary="Создание нового урока",
+        description="Создает новый с указанным названия, описания и принадлежность к курсу.",
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Функция автоматически добавляет текущего аутентифицированного пользователя
         в поле owner объекта урока."""
         serializer.save(owner=self.request.user)
 
 
+@extend_schema(tags=["Lessons"])
 class LessonListAPIView(generics.ListAPIView):
     """
     Представление для отображения списка уроков.
@@ -139,6 +170,12 @@ class LessonListAPIView(generics.ListAPIView):
         IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Получение списка уроков",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
             if self.request.user.is_staff:
@@ -147,6 +184,7 @@ class LessonListAPIView(generics.ListAPIView):
         return None
 
 
+@extend_schema(tags=["Lessons"])
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
     """
     Представление для получения детальной информации об одном уроке.
@@ -170,7 +208,14 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
         IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Получение подробностей об уроке",
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
+
+@extend_schema(tags=["Lessons"])
 class LessonUpdateAPIView(generics.UpdateAPIView):
     """
     Представление для изменения данных об уроке.
@@ -195,7 +240,20 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         IsModer | IsAdminUser | IsUserOwner,
     )
 
+    @extend_schema(
+        summary="Полное изменение урок",
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
+    @extend_schema(
+        summary="Частичное изменение урока"
+    )
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+@extend_schema(tags=["Lessons"])
 class LessonDestroyAPIView(generics.DestroyAPIView):
     """
     Представление для удаления урока.
@@ -217,6 +275,60 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
         IsAuthenticated,
         ~IsModer | IsAdminUser | IsUserOwner,
     )
+
+    @extend_schema(
+        summary="Удаление урока",
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+@extend_schema(tags=["Subscribe"])
+class SubscribeToCourse(APIView):
+    """
+    Представление для управления подписками пользователей на курсы.
+
+    Методы:
+        POST: Добавляет или удаляет подписку текущего пользователя на указанный курс.
+
+    Параметры запроса:
+        course_id (int): ID курса, на который подписывается или отказывается пользователь.
+
+    Возвращаемые значения:
+        Успех (HTTP 200 OK):
+            {"message": "Подписка добавлена."}
+            {"message": "Подписка удалена."}
+
+        Ошибка (HTTP 400 Bad Request):
+            {"error": "<сообщение об ошибке>"}
+    """
+
+    queryset = Subscription.objects.all()
+    serializer_class = LessonSerializer
+
+    @extend_schema(
+        summary="Добавляет или удаляет подписку текущего пользователя на указанный курс.",
+    )
+
+    def post(self, request):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        try:
+            course = get_object_or_404(Course, pk=course_id)
+
+            subscription_exists = Subscription.objects.filter(user=user, course=course).exists()
+
+            if subscription_exists:
+                Subscription.objects.filter(user=user, course=course).delete()
+                message = "Подписка удалена."
+            else:
+                Subscription.objects.create(user=user, course=course)
+                message = "Подписка добавлена."
+
+            return Response({"message": message}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 class SubscribeToCourse(APIView):

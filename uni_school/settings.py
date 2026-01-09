@@ -10,6 +10,7 @@ load_dotenv(override=True)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
@@ -26,8 +27,10 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_simplejwt",
-    "materials",
-    "users",
+    "drf_spectacular",
+    "corsheaders",
+    "materials.apps.MaterialsConfig",  # Или другое название конфигурации
+    "users.apps.UsersConfig",  # Или другое название конфигурации
 ]
 
 REST_FRAMEWORK = {
@@ -41,6 +44,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # Настройки срока действия токенов
@@ -57,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "uni_school.urls"
@@ -64,10 +69,11 @@ ROOT_URLCONF = "uni_school.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],  # [BASE_DIR / "templates"] применить в случае использования шаблонов
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -120,8 +126,12 @@ USE_I18N = True
 
 USE_TZ = True
 
+# URL-путь, используемый браузером для обращения к статическим ресурсам
 STATIC_URL = "static/"
 
+# Относительный путь для сбора статических файлов
+STATIC_ROOT = BASE_DIR / "collected_static"
+# Исходный путь для хранения статики в приложении
 STATICFILES_DIRS = (BASE_DIR / "static",)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -190,5 +200,30 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "uni_school API",
+    "DESCRIPTION": "Test description",
+    "VERSION": "v1",
+    "TERMS_OF_SERVICE": "https://www.google.com/policies/terms/",
+    "CONTACT": {"email": "contact@snippets.local"},
+    "LICENSE": {"name": "BSD License"},
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_GENERATION_SETTINGS": {
+        "EXCLUDE_PROTECTED_APIS": False,  # Включаем защищённые маршруты в документацию
+    },
+}
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-only.example.com",  #  адрес фронтенд-сервера
+    "http://localhost:8000",  # адрес бэкенд-сервера
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
 
 ############################################################################################

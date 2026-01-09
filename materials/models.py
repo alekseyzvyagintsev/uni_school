@@ -23,6 +23,7 @@ class Course(models.Model):
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-предпросмотр курса
     description = models.TextField(verbose_name="описание")  # Подробное описание курса
     is_active = models.BooleanField(default=False)  # Флаг активности курса, по умолчанию курс выключен.
+    price = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
     # Владелец курса
     owner = models.ForeignKey(
         "users.User",
@@ -69,6 +70,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     is_active = models.BooleanField(default=False)  # Флаг активности урока, по умолчанию урок выключен.
     link = models.URLField(blank=True, null=True)
+    price = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
     # Владелец урока
     owner = models.ForeignKey(
         "users.User",
