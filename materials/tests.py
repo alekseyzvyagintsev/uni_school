@@ -61,16 +61,16 @@ class LessonTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             response.json(),
-            {
-                "id": lesson.id,
-                "title": "Тестовый урок",
-                "preview": None,
-                "description": "Тестовый урок",
-                "is_active": False,
-                "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                "course": self.course.id,
-                "owner": self.user.id,
-                'price': None,
+        {
+            "id": lesson.id,
+            "title": "Тестовый урок",
+            "preview": None,
+            "description": "Тестовый урок",
+            "is_active": False,
+            "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "course": self.course.id,
+            "owner": self.user.id,
+            'price': None,
             },
         )
 
@@ -87,19 +87,24 @@ class LessonTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),
-            [
-                {
-                    "id": lesson.id,
-                    "title": "list test",
-                    "preview": None,
-                    "description": "list test",
-                    "is_active": False,
-                    "link": None,
-                    "course": self.course.id,
-                    "owner": self.user.id,
-                    'price': None,
-                },
-            ],
+            {
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results': [
+                    {
+                        "id": lesson.id,
+                        "title": "list test",
+                        "preview": None,
+                        "description": "list test",
+                        "is_active": False,
+                        "link": None,
+                        "course": self.course.id,
+                        "owner": self.user.id,
+                        'price': None,
+                    },
+                ]
+            }
         )
 
     def test_first_lesson(self):
