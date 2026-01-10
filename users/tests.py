@@ -1,5 +1,6 @@
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.request import Request
+from rest_framework.test import APITestCase, APIRequestFactory
 
 from materials.models import Course, Lesson
 from materials.serializer import CourseSerializer, LessonSerializer
