@@ -5,17 +5,25 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Загрузка переменных окружения
 load_dotenv(override=True)
 
+# Настройки проекта и пути
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Ключ для шифрования сессий и токенов JWT и CSRF токенов и CORS заголовков
 SECRET_KEY = os.getenv("SECRET_KEY")
+
+# Ключ API Stripe
 STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 
+# Режим отладки
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
+# Домены, которые будут использоваться
 ALLOWED_HOSTS = ["*"]
 
+# Приложения Django
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -33,6 +41,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",  # Или другое название конфигурации
 ]
 
+# Настройки API и CORS для Django REST Framework и CORS заголовков для Django и React
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -47,12 +56,12 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-# Настройки срока действия токенов
+# Настройки срока действия токенов и их обновление через JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
-
+# Настройки мидлварей для CORS и CSRF
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -63,9 +72,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
 ]
-
+# Точка входа в приложение для URL-адресов
 ROOT_URLCONF = "uni_school.urls"
 
+# Шаблоны проекта
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -82,8 +92,10 @@ TEMPLATES = [
     },
 ]
 
+# WSGI приложение для запуска проекта в продакшене и тестах
 WSGI_APPLICATION = "uni_school.wsgi.application"
 
+# База данных
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -95,6 +107,7 @@ DATABASES = {
     }
 }
 
+# Использование встроенных проверок безопасности
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -109,22 +122,23 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
+# Требуется для аутентификации пользователей.
+# Аутентификация например по внешнему сервису (LDAP, OAuth, OpenID).
+# Использование альтернативных моделей пользователей (например, своя реализация User-модели).
+# Добавление дополнительных проверок безопасности (например, двухфакторная аутентификация).
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.User"  # модель пользователя
 
-# PASSWORD_RESET_TIMEOUT_DAYS = 1  # Количество дней, в течение которых действителен токен
+LANGUAGE_CODE = "ru-RU"  # язык
 
-LANGUAGE_CODE = "ru-RU"
+TIME_ZONE = "Europe/Moscow" # временная зона
 
-TIME_ZONE = "Europe/Moscow"
+USE_I18N = True # позволит отображать страницы сайта на нужном языке
 
-USE_I18N = True
-
-USE_TZ = True
+USE_TZ = True  # сохраняет временные метки в базе данных в UTC и автоматически конвертирует их в локальное
 
 # URL-путь, используемый браузером для обращения к статическим ресурсам
 STATIC_URL = "static/"
@@ -133,13 +147,15 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "collected_static"
 # Исходный путь для хранения статики в приложении
 STATICFILES_DIRS = (BASE_DIR / "static",)
-
+# Автоинкремент полей
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# URL-путь для медиа-файлов
 MEDIA_URL = "/media/"
-
+# Относительный путь для хранения медиа-файлов
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Настройки почты
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
@@ -149,6 +165,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
+# Настройки кэша
 CACHE_ENABLED = True
 CACHES = {
     "default": {
@@ -157,9 +174,11 @@ CACHES = {
     }
 }
 
+#
 APSCHEDULER_DATETIME_FORMAT = "d-m-Y H:i:s"
 SCHEDULER_DEFAULT = True
 
+# Настройки логирования
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -201,6 +220,7 @@ LOGGING = {
     },
 }
 
+# Настройки Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "uni_school API",
     "DESCRIPTION": "Test description",
@@ -214,16 +234,25 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+# Настройки разрешений CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
 ]
-
 CSRF_TRUSTED_ORIGINS = [
     "https://read-only.example.com",  #  адрес фронтенд-сервера
     "http://localhost:8000",  # адрес бэкенд-сервера
 ]
-
 CORS_ALLOW_ALL_ORIGINS = False
+
+# Настройки Celery и Redis для асинхронных задач и очереди
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+
+#
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
 
 
 ############################################################################################
