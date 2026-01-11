@@ -33,6 +33,7 @@ class Course(models.Model):
         null=True,
         related_name="owned_courses",
     )
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title  # Строковое представление курса
