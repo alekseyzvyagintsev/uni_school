@@ -1,4 +1,5 @@
 ##############################################################################################################
+from django.utils.timezone import now
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, viewsets
 from rest_framework.generics import get_object_or_404
@@ -10,6 +11,7 @@ from materials.models import Course, Lesson, Subscription
 from materials.paginators import CustomPageNumberPagination
 from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
+from users.tasks import notify_subscribers_on_course_update
 
 
 @extend_schema(tags=["Courses"])
@@ -61,8 +63,9 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Функция автоматически добавляет текущего аутентифицированного пользователя
-        в поле owner объекта курса."""
-        serializer.save(owner=self.request.user)
+        в поле owner объекта курса и устанавливает текущее время обновления."""
+        serializer.save(owner=self.request.user, updated_at=now())
+
 
     # Определяем правила доступа для разных действий.
     permission_classes_by_action = {
@@ -110,6 +113,15 @@ class CourseViewSet(viewsets.ModelViewSet):
         context.update({"request": self.request})  # Добавляем объект запроса в контекст
         return context
 
+    def perform_update(self, serializer):
+        serializer.save(updated_at=now())
+        notify_subscribers_on_course_update.delay()
+
+    def perform_destroy(self, instance):
+        course_id = instance.id
+        super().perform_destroy(instance)
+        notify_subscribers_on_course_update.delay(course_id)
+
 
 @extend_schema(tags=["Lessons"])
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -142,7 +154,12 @@ class LessonCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         """Функция автоматически добавляет текущего аутентифицированного пользователя
         в поле owner объекта урока."""
-        serializer.save(owner=self.request.user)
+        lesson = serializer.save(owner=self.request.user)
+        # Обновляем `updated_at` у курса
+        course = lesson.course
+        course.updated_at = now()
+        course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
+        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
 
 
 @extend_schema(tags=["Lessons"])
@@ -177,11 +194,11 @@ class LessonListAPIView(generics.ListAPIView):
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            if self.request.user.is_staff:
-                return Lesson.objects.all()
-            return Lesson.objects.filter(owner=self.request.user)
-        return None
+        if not self.request.user.is_authenticated:
+            return Lesson.objects.none()
+        if self.request.user.is_staff:
+            return Lesson.objects.all()
+        return Lesson.objects.filter(owner=self.request.user)
 
 
 @extend_schema(tags=["Lessons"])
@@ -246,11 +263,17 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-    @extend_schema(
-        summary="Частичное изменение урока"
-    )
+    @extend_schema(summary="Частичное изменение урока")
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
+    # Обновляем `updated_at` у курса
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        course = lesson.course
+        course.updated_at = now()
+        course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
+        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
 
 
 @extend_schema(tags=["Lessons"])
@@ -282,6 +305,14 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
+    # Обновляем `updated_at` у курса
+    def perform_destroy(self, instance):
+        course = instance.course
+        super().perform_destroy(instance)
+        course.updated_at = now()
+        course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
+        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
+
 
 @extend_schema(tags=["Subscribe"])
 class SubscribeToCourse(APIView):
@@ -300,48 +331,30 @@ class SubscribeToCourse(APIView):
             {"message": "Подписка удалена."}
 
         Ошибка (HTTP 400 Bad Request):
-            {"error": "<сообщение об ошибке>"}
+            {"error": "Требуется course_id."}
+            {"error": "Курс не найден."}
     """
 
-    queryset = Subscription.objects.all()
-    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        summary="Добавляет или удаляет подписку текущего пользователя на указанный курс.",
+        summary="Подписаться/отписаться от курса",
+        description="Добавляет или удаляет подписку текущего пользователя на указанный курс.",
+        request={"application/json": {"type": "object", "properties": {"course_id": {"type": "integer"}}}},
+        responses={
+            200: {"type": "object", "properties": {"message": {"type": "string"}}},
+            400: {"type": "object", "properties": {"error": {"type": "string"}}},
+        },
     )
-
     def post(self, request):
         user = request.user
         course_id = request.data.get("course_id")
 
-        try:
-            course = get_object_or_404(Course, pk=course_id)
-
-            subscription_exists = Subscription.objects.filter(user=user, course=course).exists()
-
-            if subscription_exists:
-                Subscription.objects.filter(user=user, course=course).delete()
-                message = "Подписка удалена."
-            else:
-                Subscription.objects.create(user=user, course=course)
-                message = "Подписка добавлена."
-
-            return Response({"message": message}, status=200)
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
-
-
-class SubscribeToCourse(APIView):
-    queryset = Subscription.objects.all()
-    serializer_class = LessonSerializer
-
-    def post(self, request):
-        user = request.user
-        course_id = request.data.get("course_id")
+        if not course_id:
+            return Response({"error": "Требуется course_id."}, status=400)
 
         try:
             course = get_object_or_404(Course, pk=course_id)
-
             subscription_exists = Subscription.objects.filter(user=user, course=course).exists()
 
             if subscription_exists:
