@@ -1,8 +1,17 @@
+import time
+from datetime import datetime, timedelta
+from unittest.mock import call, patch
+
+from django.test import TestCase
+from django.utils import timezone
+from django.utils.timezone import make_aware
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from materials.models import Course, Subscription, Lesson
+from materials.models import Course, Lesson, Subscription
 from users.models import User
+from users.tasks import notify_subscribers_on_course_update
 
 
 class SubscriptionTest(APITestCase):
@@ -61,16 +70,16 @@ class LessonTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             response.json(),
-        {
-            "id": lesson.id,
-            "title": "Тестовый урок",
-            "preview": None,
-            "description": "Тестовый урок",
-            "is_active": False,
-            "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            "course": self.course.id,
-            "owner": self.user.id,
-            'price': None,
+            {
+                "id": lesson.id,
+                "title": "Тестовый урок",
+                "preview": None,
+                "description": "Тестовый урок",
+                "is_active": False,
+                "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "course": self.course.id,
+                "owner": self.user.id,
+                "price": None,
             },
         )
 
@@ -88,10 +97,10 @@ class LessonTests(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                'count': 1,
-                'next': None,
-                'previous': None,
-                'results': [
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
                     {
                         "id": lesson.id,
                         "title": "list test",
@@ -101,10 +110,10 @@ class LessonTests(APITestCase):
                         "link": None,
                         "course": self.course.id,
                         "owner": self.user.id,
-                        'price': None,
+                        "price": None,
                     },
-                ]
-            }
+                ],
+            },
         )
 
     def test_first_lesson(self):
@@ -125,7 +134,7 @@ class LessonTests(APITestCase):
                 "link": None,
                 "course": self.course.id,
                 "owner": self.user.id,
-                'price': None,
+                "price": None,
             },
         )
 
@@ -152,7 +161,7 @@ class LessonTests(APITestCase):
                 "link": None,
                 "course": self.course.id,
                 "owner": self.user.id,
-                'price': None,
+                "price": None,
             },
         )
 
@@ -208,3 +217,51 @@ class LessonTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Возвращаем аутентификацию к первоначальному пользователю
         self.client.force_authenticate(user=self.user)
+
+
+class NotifySubscribersTaskTest(TestCase):
+    def setUp(self):
+        # Установка временного момента для тестов
+        self.now = make_aware(datetime(2023, 8, 1, 12, 0, 0, 89047))
+
+        # Создание курсов для разных ситуаций
+        self.course_never_notified = Course.objects.create(
+            title="Never Notified", updated_at=self.now - timedelta(hours=3), last_notified_at=None
+        )
+
+        self.course_recently_updated_and_notified = Course.objects.create(
+            title="Recently Updated & Notified",
+            updated_at=self.now - timedelta(hours=1),
+            last_notified_at=self.now - timedelta(hours=1),
+        )
+
+        self.course_old_update_but_never_notified = Course.objects.create(
+            title="Old Update But Never Notified", updated_at=self.now - timedelta(hours=5), last_notified_at=None
+        )
+
+        self.course_recently_updated_but_not_yet_notified = Course.objects.create(
+            title="Recently Updated but Not Yet Notified",
+            updated_at=self.now - timedelta(minutes=30),
+            last_notified_at=None,
+        )
+
+    @patch("users.tasks.notify_subscribers")
+    def test_send_notifications_only_for_new_updates(self, mock_notify):
+        """
+        Проверяется отправка уведомлений только для новых обновлений.
+        Старые обновления также получают уведомления, если они ранее не были отправлены.
+        Недавно уведомленные курсы не отправляются повторно.
+        """
+        mock_notify.return_value = 10  # Эмуляция успешной отправки уведомлений
+
+        with freeze_time(self.now):
+            result = notify_subscribers_on_course_update()
+
+        expected_calls = [
+            call(self.course_never_notified),
+            call(self.course_old_update_but_never_notified),
+            call(self.course_recently_updated_but_not_yet_notified),
+        ]
+
+        mock_notify.assert_has_calls(expected_calls, any_order=True)
+        self.assertEqual(result, len(expected_calls) * mock_notify.return_value)
