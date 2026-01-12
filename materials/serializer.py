@@ -78,6 +78,8 @@ class CourseSerializer(serializers.ModelSerializer):
             "title",
             "preview",
             "description",
+            "updated_at",
+            "last_notified_at",
             "owner",
             "many_lessons",
             "is_subscribed",
@@ -104,7 +106,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Метод для вычисления статуса подписки"""
-        request = self.context.get('request')
+        request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return False
         current_user = request.user
