@@ -134,9 +134,9 @@ AUTH_USER_MODEL = "users.User"  # модель пользователя
 
 LANGUAGE_CODE = "ru-RU"  # язык
 
-TIME_ZONE = "Europe/Moscow" # временная зона
+TIME_ZONE = "Europe/Moscow"  # временная зона
 
-USE_I18N = True # позволит отображать страницы сайта на нужном языке
+USE_I18N = True  # позволит отображать страницы сайта на нужном языке
 
 USE_TZ = True  # сохраняет временные метки в базе данных в UTC и автоматически конвертирует их в локальное
 
@@ -245,14 +245,14 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = False
 
 # Настройки Celery и Redis для асинхронных задач и очереди
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
 #
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Europe/Moscow"
 
 
 ############################################################################################
