@@ -28,9 +28,7 @@ def notify_subscribers_on_course_update():
     four_hours_ago = now - timedelta(hours=4)
 
     # Курсы, обновлённые за последние 4 часа и требующие уведомления
-    courses = Course.objects.filter(
-        updated_at__gte=four_hours_ago
-    ).exclude(
+    courses = Course.objects.filter(updated_at__gte=four_hours_ago).exclude(
         # Исключаем уже уведомлённые в последние 4 часа
         last_notified_at__gte=four_hours_ago
     )
@@ -44,7 +42,7 @@ def notify_subscribers_on_course_update():
             sent_count = notify_subscribers(course)
             if sent_count:
                 course.last_notified_at = now
-                course.save(update_fields=['last_notified_at'])
+                course.save(update_fields=["last_notified_at"])
                 logger.info(f"Уведомления о курсе '{course.title}' отправлены {sent_count} пользователям")
                 notified_count += sent_count
                 notified_courses.append(course.title)
@@ -54,5 +52,6 @@ def notify_subscribers_on_course_update():
         logger.debug(f"Обновлённые и уведомлённые курсы: {', '.join(notified_courses)}")
 
     return notified_count
+
 
 ###############################################################################

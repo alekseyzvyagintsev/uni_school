@@ -28,7 +28,7 @@ def get_course_subscriber_emails(course):
     Возвращает список нормализованных и валидных email-адресов подписчиков курса.
     Использует `email_validator` для более строгой валидации и нормализации.
     """
-    subscribers = course.subscribers.select_related('user').all()
+    subscribers = course.subscribers.select_related("user").all()
     valid_emails = []
 
     for subscriber in subscribers:

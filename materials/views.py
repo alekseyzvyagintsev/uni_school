@@ -66,7 +66,6 @@ class CourseViewSet(viewsets.ModelViewSet):
         в поле owner объекта курса и устанавливает текущее время обновления."""
         serializer.save(owner=self.request.user, updated_at=now())
 
-
     # Определяем правила доступа для разных действий.
     permission_classes_by_action = {
         # Курс может создать только авторизованный пользователь.
