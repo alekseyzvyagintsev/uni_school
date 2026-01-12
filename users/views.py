@@ -219,13 +219,13 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # Получаем данные из запроса
         data = self.request.data
-        object_type = data.get('product')
-        object_id = data.get('id')
+        object_type = data.get("product")
+        object_id = data.get("id")
 
         # Определяем тип объекта (курс или урок)
-        if object_type == 'Course':
+        if object_type == "Course":
             course_or_lesson = get_object_or_404(Course, id=object_id)
-        elif object_type == 'Lesson':
+        elif object_type == "Lesson":
             course_or_lesson = get_object_or_404(Lesson, id=object_id)
         else:
             raise ValueError("Необходимо передать объект типа Course или Lesson.")
@@ -239,7 +239,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             user=user,
             method=method,
             paid_course=course_or_lesson if isinstance(course_or_lesson, Course) else None,
-            paid_lesson=course_or_lesson if isinstance(course_or_lesson, Lesson) else None
+            paid_lesson=course_or_lesson if isinstance(course_or_lesson, Lesson) else None,
         )
 
         # Если оплата через Stripe — создаём сессию
@@ -251,14 +251,12 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             stripe_product = stripe.Product.create(
                 name=stripe_product_name,
                 description=course_or_lesson.description,
-                metadata={"prod_id_from_db": course_or_lesson.id}
+                metadata={"prod_id_from_db": course_or_lesson.id},
             )
 
             # Создаем цену в Stripe
             stripe_price = stripe.Price.create(
-                product=stripe_product.id,
-                unit_amount=int(course_or_lesson.price * 100),  # в копейках
-                currency="rub"
+                product=stripe_product.id, unit_amount=int(course_or_lesson.price * 100), currency="rub"  # в копейках
             )
 
             # Создаем сессию Stripe и фиксируем её ID и ссылку
@@ -267,8 +265,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             # Сохраняем дополнительную информацию в модели Payment
             # payment.ext_pay_sess_id = session_id
             payment.link = session_url
-            print(f'transfer {payment}')
-
+            print(f"transfer {payment}")
 
     @extend_schema(
         summary="Создание платежа",
@@ -349,9 +346,7 @@ class PaymentUpdateAPIView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-    @extend_schema(
-        summary="Частичное изменение платежа"
-    )
+    @extend_schema(summary="Частичное изменение платежа")
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
