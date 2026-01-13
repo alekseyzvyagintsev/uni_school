@@ -1,12 +1,16 @@
 #########################################################################################
 import logging
+from datetime import timedelta
 
 import stripe
 from django.core.mail import send_mail
+from django.utils import timezone
 from email_validator import EmailNotValidError, validate_email
 
+from materials.models import Course
 from uni_school import settings
 from uni_school.settings import STRIPE_API_KEY
+from users.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +104,74 @@ def notify_subscribers(course):
     if result:
         course.save(update_fields=["last_notified_at"])
     return result
+
+
+def notify_subscribers_on_course_update():
+    """
+    Отправляет уведомления подписчикам о курсах, обновлённых за последние 4 часа,
+    но только если они ещё не были уведомлены после обновления.
+    """
+    now = timezone.now()
+    four_hours_ago = now - timedelta(hours=4)
+
+    # Курсы, обновлённые за последние 4 часа и требующие уведомления
+    courses = Course.objects.filter(updated_at__gte=four_hours_ago).exclude(
+        # Исключаем уже уведомлённые в последние 4 часа
+        last_notified_at__gte=four_hours_ago
+    )
+
+    notified_count = 0
+    notified_courses = []
+
+    for course in courses:
+        # Проверяем, что уведомление ещё не отправлялось после обновления
+        if not course.last_notified_at or course.last_notified_at < course.updated_at:
+            sent_count = notify_subscribers(course)
+            if sent_count:
+                course.last_notified_at = now
+                course.save(update_fields=["last_notified_at"])
+                logger.info(f"Уведомления о курсе '{course.title}' отправлены {sent_count} пользователям")
+                notified_count += sent_count
+                notified_courses.append(course.title)
+
+    logger.info(f"Успешно отправлено уведомлений: {notified_count} пользователям по {len(notified_courses)} курсам.")
+    if notified_courses:
+        logger.debug(f"Обновлённые и уведомлённые курсы: {', '.join(notified_courses)}")
+
+    return notified_count
+
+
+def deactivate_expired_users():
+    """
+    Деактивирует пользователей:
+    - которые не заходили более 30 дней,-
+    - или никогда не входили, но зарегистрированы более 30 дней назад.
+    """
+    expiry_time = timezone.now() - timedelta(days=30)
+    # Пользователи, которые входили, но давно
+    expired_active_users = User.objects.filter(is_active=True, last_login__lt=expiry_time)
+    # Пользователи, которые никогда не входили, но зарегистрированы давно
+    dormant_expired_users = User.objects.filter(is_active=True, last_login__isnull=True, date_joined__lt=expiry_time)
+    # Объединяем QuerySets
+    expired_users = expired_active_users.union(dormant_expired_users)
+    # Логируем общее количество найденных пользователей
+    count = expired_users.count()
+    if count == 0:
+        logger.info("Нет пользователей, подлежащих деактивации.")
+    else:
+        logger.info(f"Найдено {count} пользователей для деактивации.")
+    # Деактивируем по одному с логированием
+    deactivated_count = 0
+    for user in expired_users:
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        logger.info(
+            f"Пользователь {user.id} ({user.email}) деактивирован: "
+            f"last_login={user.last_login}, date_joined={user.date_joined}"
+        )
+        deactivated_count += 1
+
+    return deactivated_count
 
 
 #########################################################################################

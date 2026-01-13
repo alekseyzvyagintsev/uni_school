@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.admindocs",
     "django_filters",
+    "django_celery_beat",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
@@ -236,23 +237,45 @@ SPECTACULAR_SETTINGS = {
 
 # Настройки разрешений CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
+    "http://localhost:8000",  # адрес бэкенд-сервера
 ]
+# Разрешения для CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://read-only.example.com",  #  адрес фронтенд-сервера
     "http://localhost:8000",  # адрес бэкенд-сервера
 ]
+# Разрешение для всех доменов
 CORS_ALLOW_ALL_ORIGINS = False
 
 # Настройки Celery и Redis для асинхронных задач и очереди
+
+# URL-адрес брокера сообщений
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+# URL-адрес брокера результатов, также Redis
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
-#
+# Настройки сериализации для Celery
 CELERY_ACCEPT_CONTENT = ["json"]
+# Формат сериализации
 CELERY_TASK_SERIALIZER = "json"
+# Формат сериализации результатов
 CELERY_RESULT_SERIALIZER = "json"
+
+# Временная зона для Celery
+CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = "Europe/Moscow"
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+# Расписание для периодических задач
+if SCHEDULER_DEFAULT:
+    CELERY_BEAT_SCHEDULE = {
+        "deactivate_expired_users_task": {
+            "task": "users.tasks.deactivate_expired_users_task",
+            "schedule": timedelta(minutes=1),
+        },
+    }
 
 
 ############################################################################################
