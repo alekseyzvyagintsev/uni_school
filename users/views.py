@@ -3,9 +3,9 @@ import stripe
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, mixins, viewsets
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from materials.models import Course, Lesson
@@ -39,7 +39,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
     ViewSet для работы с моделями пользователей.
 
     Обеспечивает базовые операции CRUD над пользователями, включая создание нового пользователя,
-    получение общего списка пользователей ,
+    получение общего списка пользователей,
     детализацию конкретного пользователя, обновление и удаление.
 
     #### Основные возможности:
@@ -219,15 +219,14 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # Получаем данные из запроса
         data = self.request.data
+        object_type = data.get("product")
+        object_id = data.get("id")
 
         # Определяем тип объекта (курс или урок)
-        object_type = data.get('product')
-        object_id = data.get('id')
-
-        if object_type == 'Course':
-            course_or_lesson = Course.objects.get(id=object_id)
-        elif object_type == 'Lesson':
-            course_or_lesson = Lesson.objects.get(id=object_id)
+        if object_type == "Course":
+            course_or_lesson = get_object_or_404(Course, id=object_id)
+        elif object_type == "Lesson":
+            course_or_lesson = get_object_or_404(Lesson, id=object_id)
         else:
             raise ValueError("Необходимо передать объект типа Course или Lesson.")
 
@@ -236,16 +235,14 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         user = self.request.user
 
         # Создаем запись платежа
-        payment = serializer.save(user=user,)
-        payment.title = data.get('title')
-        payment.description = data.get('description')
-        payment.method=method
-        payment.paid_course = course_or_lesson if isinstance(course_or_lesson, Course) else None
-        payment.paid_lesson = course_or_lesson if isinstance(course_or_lesson, Lesson) else None
-        payment.save()
-        print(f'mey be cash {payment}')
+        payment = serializer.save(
+            user=user,
+            method=method,
+            paid_course=course_or_lesson if isinstance(course_or_lesson, Course) else None,
+            paid_lesson=course_or_lesson if isinstance(course_or_lesson, Lesson) else None,
+        )
 
-        # Если оплата производится через Stripe
+        # Если оплата через Stripe — создаём сессию
         if method == "transfer":
             # Формируем наименование продукта для Stripe
             stripe_product_name = f"{type(course_or_lesson).__name__.capitalize()} '{course_or_lesson.title}'"
@@ -254,25 +251,21 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             stripe_product = stripe.Product.create(
                 name=stripe_product_name,
                 description=course_or_lesson.description,
-                metadata={"prod_id_from_db": course_or_lesson.id}
+                metadata={"prod_id_from_db": course_or_lesson.id},
             )
 
             # Создаем цену в Stripe
             stripe_price = stripe.Price.create(
-                product=stripe_product.id,
-                unit_amount=int(course_or_lesson.price * 100),
-                currency="rub"
+                product=stripe_product.id, unit_amount=int(course_or_lesson.price * 100), currency="rub"  # в копейках
             )
 
             # Создаем сессию Stripe и фиксируем её ID и ссылку
             session_id, session_url = create_stripe_session(stripe_price)
 
             # Сохраняем дополнительную информацию в модели Payment
-            payment.ext_pay_sess_id = session_id
+            # payment.ext_pay_sess_id = session_id
             payment.link = session_url
-            payment.save()
-            print(f'transfer {payment}')
-
+            print(f"transfer {payment}")
 
     @extend_schema(
         summary="Создание платежа",
@@ -289,11 +282,11 @@ class PaymentListAPIView(generics.ListAPIView):
     Позволяет получать полный список записей о платежах с поддержкой фильтрации
     и сортировки.
     #### Доступны поля фильтрации:
-      - paid_course (оплаченный курс),
-      - paid_lesson (оплаченное занятие),
-      - method (метод оплаты).
+      - paid_course (оплаченный курс),-
+      - paid_lesson (оплаченное занятие),-
+      - method (метод оплаты).-
     #### Поля сортировки:
-      - date (дата платежа).
+      - date (дата платежа).-
     """
 
     # Выборка всех существующих платежей
@@ -353,9 +346,7 @@ class PaymentUpdateAPIView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
-    @extend_schema(
-        summary="Частичное изменение платежа"
-    )
+    @extend_schema(summary="Частичное изменение платежа")
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 

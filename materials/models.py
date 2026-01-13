@@ -1,5 +1,6 @@
 ####################################################################################################################
 from django.db import models
+from django.utils import timezone
 
 
 class Course(models.Model):
@@ -23,7 +24,7 @@ class Course(models.Model):
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)  # Картинка-предпросмотр курса
     description = models.TextField(verbose_name="описание")  # Подробное описание курса
     is_active = models.BooleanField(default=False)  # Флаг активности курса, по умолчанию курс выключен.
-    price = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
+    price = models.PositiveIntegerField(verbose_name="Сумма оплаты", blank=True, null=True)
     # Владелец курса
     owner = models.ForeignKey(
         "users.User",
@@ -33,6 +34,8 @@ class Course(models.Model):
         null=True,
         related_name="owned_courses",
     )
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    last_notified_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title  # Строковое представление курса
@@ -70,7 +73,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     is_active = models.BooleanField(default=False)  # Флаг активности урока, по умолчанию урок выключен.
     link = models.URLField(blank=True, null=True)
-    price = models.PositiveIntegerField(verbose_name='Сумма оплаты', blank=True, null=True)
+    price = models.PositiveIntegerField(verbose_name="Сумма оплаты", blank=True, null=True)
     # Владелец урока
     owner = models.ForeignKey(
         "users.User",
@@ -92,11 +95,30 @@ class Lesson(models.Model):
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    """
+    Модель представляет собой подписку на курс.
+
+    Каждая запись связывает пользователя и курс, на который подписан пользователь.
+
+    #### Атрибуты:
+    - **user**: Внешний ключ на пользователя, который подписывается.
+    - **course**: Внешний ключ на курс, на который подписывается пользователь.
+
+    #### Особенности:
+    - Пользователь может подписаться на несколько курсов. На каждый курс нельзя подписаться дважды не отписавшись.
+    - Таблица базы данных называется `"subscriptions"`.
+    """
+
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="subscriptions")
+    course = models.ForeignKey("materials.Course", on_delete=models.CASCADE, related_name="subscribers")
 
     class Meta:
         unique_together = ("user", "course")
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+
+    def __str__(self):
+        return f"{self.user.email} → {self.course.title}"
 
 
 ####################################################################################################################

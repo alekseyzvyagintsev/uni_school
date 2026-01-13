@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from materials.models import Subscription
 from users.models import Payment, User
 
 
@@ -10,3 +11,4 @@ class UserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Payment)
+admin.site.register(Subscription)

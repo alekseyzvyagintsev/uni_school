@@ -55,8 +55,7 @@ class Command(BaseCommand):
         admin.groups.add(admin_group)
 
         try:
-            moderator = User.objects.get(
-                email="moderator@example.com")
+            moderator = User.objects.get(email="moderator@example.com")
         except User.DoesNotExist:
             moderator = User.objects.create(
                 email="moderator@example.com",
@@ -72,8 +71,7 @@ class Command(BaseCommand):
         moderator.groups.add(moderator_group)
 
         try:
-            user = User.objects.create(
-                email="user@example.com")
+            user = User.objects.create(email="user@example.com")
         except User.DoesNotExist:
             user = User.objects.create(
                 email="user@example.com",

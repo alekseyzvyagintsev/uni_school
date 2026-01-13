@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 course=course,
                 owner=course.owner,
                 is_active=True,
-                price=20000
+                price=20000,
             )
             self.stdout.write(f"Урок успешно создан: {lesson.title}")
 
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             moderator = User.objects.get(id="2")
             any_user = User.objects.get(id="3")
         except User.DoesNotExist:
-            User.objects.create_user(username='new_user', password='qwer1234', email='new_user@example.com')
+            User.objects.create_user(username="new_user", password="qwer1234", email="new_user@example.com")
             raise ValueError("Один из указанных пользователей отсутствует!")
         try:
             courses_data = [
@@ -47,13 +47,7 @@ class Command(BaseCommand):
                 else:
                     user = User.objects.get(username="new_user")
 
-                course = Course.objects.create(
-                    title=name,
-                    description=desc,
-                    owner=user,
-                    is_active=True,
-                    price=120000
-                )
+                course = Course.objects.create(title=name, description=desc, owner=user, is_active=True, price=120000)
                 self.stdout.write(f"Курс успешно создан: {name}")
 
                 # Создание уроков для текущего курса

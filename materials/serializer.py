@@ -3,7 +3,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from materials.models import Course, Lesson
+from materials.models import Course, Lesson, Subscription
 from materials.validators import ValidateYoutubeLink
 
 
@@ -78,6 +78,8 @@ class CourseSerializer(serializers.ModelSerializer):
             "title",
             "preview",
             "description",
+            "updated_at",
+            "last_notified_at",
             "owner",
             "many_lessons",
             "is_subscribed",
@@ -104,7 +106,10 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Метод для вычисления статуса подписки"""
-        current_user = self.context["request"].user
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        current_user = request.user
         return Subscription.objects.filter(user=current_user, course=obj).exists()
 
 
