@@ -243,7 +243,7 @@ class NotifySubscribersTaskTest(TestCase):
             last_notified_at=None,
         )
 
-    @patch("users.tasks.notify_subscribers")
+    @patch("users.services.notify_subscribers")
     def test_send_notifications_only_for_new_updates(self, mock_notify):
         """
         Проверяется отправка уведомлений только для новых обновлений.
