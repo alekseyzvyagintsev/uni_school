@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def control_course_updates():
+def notify_subscribers_on_course_update_task():
     try:
         notify_subscribers_on_course_update()
         return "Уведомления о курсах отправлены"

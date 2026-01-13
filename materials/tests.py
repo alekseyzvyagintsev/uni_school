@@ -1,9 +1,7 @@
-import time
 from datetime import datetime, timedelta
 from unittest.mock import call, patch
 
 from django.test import TestCase
-from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from rest_framework import status
@@ -11,7 +9,7 @@ from rest_framework.test import APITestCase
 
 from materials.models import Course, Lesson, Subscription
 from users.models import User
-from users.tasks import notify_subscribers_on_course_update
+from users.tasks import notify_subscribers_on_course_update_task
 
 
 class SubscriptionTest(APITestCase):
@@ -255,7 +253,7 @@ class NotifySubscribersTaskTest(TestCase):
         mock_notify.return_value = 10  # Эмуляция успешной отправки уведомлений
 
         with freeze_time(self.now):
-            result = notify_subscribers_on_course_update()
+            result = notify_subscribers_on_course_update_task()
 
         expected_calls = [
             call(self.course_never_notified),

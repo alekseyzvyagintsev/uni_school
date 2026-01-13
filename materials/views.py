@@ -11,7 +11,7 @@ from materials.models import Course, Lesson, Subscription
 from materials.paginators import CustomPageNumberPagination
 from materials.serializer import CourseSerializer, LessonSerializer
 from users.permissions import IsAdminUser, IsModer, IsUserOwner
-from users.tasks import notify_subscribers_on_course_update
+from users.tasks import notify_subscribers_on_course_update, notify_subscribers_on_course_update_task
 
 
 @extend_schema(tags=["Courses"])
@@ -158,7 +158,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
         course = lesson.course
         course.updated_at = now()
         course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
-        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
+        notify_subscribers_on_course_update_task.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
 
 
 @extend_schema(tags=["Lessons"])
@@ -272,7 +272,7 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         course = lesson.course
         course.updated_at = now()
         course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
-        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
+        notify_subscribers_on_course_update_task.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
 
 
 @extend_schema(tags=["Lessons"])
@@ -310,7 +310,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
         super().perform_destroy(instance)
         course.updated_at = now()
         course.save(update_fields=["updated_at"])  # Чтобы не срабатывали другие сигналы
-        notify_subscribers_on_course_update.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
+        notify_subscribers_on_course_update_task.delay()  # Запускаем в фоне рассылку уведомлений об обновлении курса
 
 
 @extend_schema(tags=["Subscribe"])
