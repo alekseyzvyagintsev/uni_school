@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 def notify_subscribers_on_course_update_task():
     """Celery задача для уведомления подписчиков о новых курсах."""
     try:
-        notify_subscribers_on_course_update()
-        return "Уведомления о курсах отправлены"
+        result = notify_subscribers_on_course_update()
+        logger.info("Уведомления о курсах отправлены")
+        return result
     except Exception as e:
         logger.error(e)
         return f"Ошибка: {str(e)}"
