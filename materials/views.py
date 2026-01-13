@@ -211,7 +211,7 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     - Подробная информация о конкретном уроке.
 
     #### Метод HTTP:
-    - GET /lesson/<id>/: Получение деталей урока по его идентификатору.
+    - GET /lesson/id/: Получение деталей урока по его идентификатору.
     """
 
     queryset = Lesson.objects.all()  # Выборка всех уроков
@@ -242,8 +242,8 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     - Изменение содержимого урока.
 
     #### Методы HTTP:
-    - PUT /lesson/<id>/: Полное обновление урока.
-    - PATCH /lesson/<id>/: Частичное обновление урока.
+    - PUT /lesson/id/: Полное обновление урока.
+    - PATCH /lesson/id/: Частичное обновление урока.
     """
 
     queryset = Lesson.objects.all()  # Выборка всех уроков
@@ -286,7 +286,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     - Удаление выбранного урока.
 
     #### Метод HTTP:
-    - DELETE /lesson/<id>/: Удаление урока по указанному идентификатору.
+    - DELETE /lesson/id/: Удаление урока по указанному идентификатору.
     """
 
     queryset = Lesson.objects.all()  # Выборка всех уроков
