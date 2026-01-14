@@ -194,7 +194,7 @@ LOGGING = {
         },
         "file": {
             "class": "logging.FileHandler",
-            "filename": "uni_school_app.log",
+            "filename": "app.log",
             "formatter": "verbose",
         },
     },
