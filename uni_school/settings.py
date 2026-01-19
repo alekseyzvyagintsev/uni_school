@@ -96,6 +96,7 @@ TEMPLATES = [
 # WSGI приложение для запуска проекта в продакшене и тестах
 WSGI_APPLICATION = "uni_school.wsgi.application"
 
+#################################
 # База данных
 DATABASES = {
     "default": {
@@ -103,10 +104,11 @@ DATABASES = {
         "NAME": os.getenv("NAME"),
         "USER": os.getenv("USER"),
         "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": os.getenv("HOST"),
-        "PORT": os.getenv("PORT"),
+        "HOST": "db", #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
+        "PORT": os.getenv("PORT", "5432"),
     }
 }
+##################################
 
 # Использование встроенных проверок безопасности
 AUTH_PASSWORD_VALIDATORS = [
@@ -152,7 +154,7 @@ STATICFILES_DIRS = (BASE_DIR / "static",)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # URL-путь для медиа-файлов
-MEDIA_URL = "/media/"
+MEDIA_URL = "media/"
 # Относительный путь для хранения медиа-файлов
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -171,7 +173,7 @@ CACHE_ENABLED = True
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://redis:6379/1",
     }
 }
 
@@ -250,9 +252,9 @@ CORS_ALLOW_ALL_ORIGINS = False
 # Настройки Celery и Redis для асинхронных задач и очереди
 
 # URL-адрес брокера сообщений
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "redis://redis:6379/0"
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 
 # Настройки сериализации для Celery
 CELERY_ACCEPT_CONTENT = ["json"]

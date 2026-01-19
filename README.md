@@ -37,31 +37,31 @@
 
 ## 🛠 Настройка окружения
 
-### 1. Создайте файл `.env`
-
+### Создайте файл `.env`
+- Используйте в корне проекта файл `.env.sample`.
+- Необходимо сделать копию с именем `.env` и заполнить.
 ---
-### env
-База данных
-NAME=uni_school_db 
-USER=postgres 
-PASSWORD=*******
+## .env
+### База данных
+- NAME=uni_school_db 
+- USER=postgres 
+- PASSWORD=*******
 
 ### Django
-SECRET_KEY=django-insecure-... # замените на свой 
-
-DEBUG=True
+- SECRET_KEY=django-insecure-... # замените на свой
+- DEBUG=True
 
 ### Email (Yandex)
-EMAIL_HOST=smtp.yandex.ru 
-EMAIL_PORT=465 
-EMAIL_USE_TLS=False 
-EMAIL_USE_SSL=True 
-EMAIL_HOST_USER=*******@yandex.ru 
-EMAIL_HOST_PASSWORD=***************** 
-DEFAULT_FROM_EMAIL=*******@yandex.ru
+- EMAIL_HOST=smtp.yandex.ru 
+- EMAIL_PORT=465 
+- EMAIL_USE_TLS=False 
+- EMAIL_USE_SSL=True 
+- EMAIL_HOST_USER=*******@yandex.ru 
+- EMAIL_HOST_PASSWORD=***************** 
+- DEFAULT_FROM_EMAIL=*******@yandex.ru
 ### Celery
-CELERY_BROKER_URL=redis://redis:6379/0 
-CELERY_RESULT_BACKEND=redis://redis:6379/0
+- CELERY_BROKER_URL=redis://redis:6379/0 
+- CELERY_RESULT_BACKEND=redis://redis:6379/0
 
 
 > 💡 Сохраните `.env` в корне проекта.
@@ -71,13 +71,20 @@ CELERY_RESULT_BACKEND=redis://redis:6379/0
 ## 🐳 Запуск приложения
 
 ### 1. Сборка и запуск
-- bash docker-compose down -v # Очистка предыдущих контейнеров и томов 
 - docker-compose up --build # Сборка и запуск
 - docker-compose up -d # Запуск в фоновом режиме
-- docker-compose logs -f # Просмотр логов
-- docker-compose down # Остановка
-- docker-compose up --scale celery=3 # Масштабирование celery
 - Приложение будет доступно по адресу: `http://localhost:8000`
+
+### 2. Остановка и очистка
+- bash docker-compose down -v # Остановка и очистка предыдущих контейнеров и томов
+- docker-compose down -v --remove-orphans # Остановка и очистка неиспользуемых контейнеров
+- docker system prune -a # Очистка всех контейнеров, образов и томов
+- docker volume prune # Очистка томов
+- docker-compose down # Остановка
+
+### 3. Проверка
+- docker-compose logs -f # Просмотр логов
+- docker-compose ps # Список запущенных сервисов
 
 ---
 
@@ -146,17 +153,17 @@ CELERY_RESULT_BACKEND=redis://redis:6379/0
 ## 📦 Dockerfile
 
 ### dockerfile 
-FROM python:3.12 
-LABEL authors="alexey"
-WORKDIR /code COPY requirements.txt ./ 
-RUN pip install --no-cache-dir -r requirements.txt 
-COPY . /code/
-RUN apt-get update && apt-get install -y
-gcc
-libpq-dev
-&& apt-get clean
-&& rm -rf /var/lib/apt/lists/*
-EXPOSE 8000
+- FROM python:3.12 
+- LABEL authors="alexey"
+- WORKDIR /code COPY requirements.txt ./ 
+- RUN pip install --no-cache-dir -r requirements.txt 
+- COPY . /code/
+- RUN apt-get update && apt-get install -y \
+- gcc \
+- libpq-dev \
+- && apt-get clean
+- && rm -rf /var/lib/apt/lists/*
+- EXPOSE 8000
 
 
 > ⚠️ Команда запуска (`command`) задаётся в `docker-compose.yml`, не в `Dockerfile`
@@ -185,7 +192,6 @@ bash
 ### 1. Безопасность
 - Не используйте `DEBUG=True` на продакшене
 - Замените `SECRET_KEY`
-- Используйте в корне проекта файл `.env.sample`. Необходимо сделать копию с именем `.env` и заполнить.
 
 ### 2. Масштабирование
 - `celery` можно масштабировать: `docker-compose up --scale celery=3`
