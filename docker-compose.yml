@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:16.0
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${NAME}
+      POSTGRES_PASSWORD: ${PASSWORD}
+      DATABASE_HOST: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: bash -c "pg_isready -U $$USER -d $$NAME -h localhost"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4.7
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - "./config/redis.conf:/usr/local/etc/redis/redis.conf"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  celery:
+    build: .
+    env_file:
+      - .env
+    command: bash -c "celery -A uni_school worker -l info"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: .
+    env_file:
+      - .env
+    command: bash -c "celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+
+  web:
+    build: .
+    env_file:
+      - .env
+    command: bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cau && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+      - static_volume:/code/collected_static
+      - static_volume:/code/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  static_volume:
