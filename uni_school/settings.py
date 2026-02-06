@@ -105,7 +105,7 @@ DATABASES = {
         "USER": os.getenv("USER"),
         "PASSWORD": os.getenv("PASSWORD"),
         "HOST": "db", #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
-        "PORT": os.getenv("PORT", "5432"),
+        "PORT": os.getenv("PORT", "5432")
     }
 }
 ##################################
@@ -173,7 +173,7 @@ CACHE_ENABLED = True
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
+        "LOCATION": "redis://redis:6380/1", # порт 6380 указан временно для докера, по умолчанию 6379
     }
 }
 
@@ -206,7 +206,7 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "sending": {
+        "materials": {
             "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": False,
@@ -253,7 +253,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 # URL-адрес брокера сообщений
 CELERY_BROKER_URL = "redis://redis:6379/0"
-# URL-адрес брокера результатов, также Redis
+# URL-адрес брокера результатов
 CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 
 # Настройки сериализации для Celery
