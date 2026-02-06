@@ -1,33 +1,9 @@
-[project]
+[tool.poetry]
 name = "uni-school"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Aleksey Zvyagintsev",email = "alex0236889@gmail.com"}
-]
+authors = ["Aleksey Zvyagintsev <alex0236889@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "django-filter (>=25.2,<26.0)",
-    "black (==25.12.0)",
-    "mypy (==1.19.1)",
-    "docutils (==0.22.4)",
-    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
-    "django-cors-headers (>=4.9.0,<5.0.0)",
-    "docutils-stubs (==0.0.22)",
-    "types-docutils (==0.22.3.20251115)",
-    "poetry-core (>=2.0.0)",
-    "celery (>=5.6.2,<6.0.0)",
-    "celery-types (==0.24.0)"
-]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-
-[tool.poetry]
 package-mode = false
 
 [tool.poetry.dependencies]
@@ -35,16 +11,29 @@ python = "^3.12"
 django = "5.2.8"
 python-dotenv = "^1.1.1"
 psycopg2-binary = "==2.9.11"
-poetry-core = "^2.0.0"
 apscheduler = "==3.11.1"
 django-apscheduler = "^0.7.0"
 email-validator = "^2.3.0"
+django-filter = ">=25.2,<26.0"
+black = "==25.12.0"
+mypy = "==1.19.1"
+docutils = "==0.22.4"
+djangorestframework-simplejwt = ">=5.5.1,<6.0.0"
+django-cors-headers = ">=4.9.0,<5.0.0"
+docutils-stubs = "==0.0.22"
+types-docutils = "==0.22.3.20251115"
+celery = ">=5.6.2,<6.0.0"
+celery-types = "==0.24.0"
 
 [tool.poetry.group.lint.dependencies]
 flake8 = "^7.1.1"
 black = "^25.11.0"
 isort = "7.0.0"
 mypy = "^1.14.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 disallow_untyped_defs = true
@@ -64,12 +53,11 @@ line-length = 119
 exclude = '''
 (
   /(
-      \.eggs         # Исключить несколько общих каталогов
-    | \.git          # в корне проекта
+      \.eggs
+    | \.git
     | \.mypy_cache
     | \.venv
   )/
-  | foo.py           # Также отдельно исключить файл с именем foo.py
-                     # в корне проекта
+  | foo.py
 )
 '''
