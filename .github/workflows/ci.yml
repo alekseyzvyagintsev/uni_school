@@ -45,6 +45,12 @@ jobs:
           pip install poetry
           poetry install
 
+      - name: Check installed packages
+        run: poetry run pip list
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)/uni_school" >> $GITHUB_ENV
+
       - name: Run migrate
         run: python manage.py migrate
 
