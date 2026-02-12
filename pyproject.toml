@@ -28,6 +28,7 @@ django-celery-beat = "^2.8.1"
 drf-spectacular = "^0.29.0"
 stripe = "^14.3.0"
 pillow = "^12.1.1"
+freezegun = "^1.5.5"
 
 [tool.poetry.group.lint.dependencies]
 flake8 = "^7.1.1"
