@@ -51,22 +51,22 @@ jobs:
       - name: Run migrate
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: ""
           DB_HOST: 127.0.0.1
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_PORT: 5432
         run: |
           poetry run python manage.py migrate
 
       - name: Run tests
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: ""
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
         run: |
           poetry run python manage.py test
 
