@@ -101,8 +101,8 @@ WSGI_APPLICATION = "uni_school.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME"),
-        "USER": os.getenv("USER"),
+        "NAME": os.getenv("NAME", "uni_school"),
+        "USER": os.getenv("USER", "postgres"),
         "PASSWORD": os.getenv("PASSWORD", ""),
         "HOST": os.getenv('DB_HOST', '127.0.0.1'), #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
         "PORT": os.getenv("PORT", "5432")
