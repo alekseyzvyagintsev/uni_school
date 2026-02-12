@@ -7,13 +7,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SECRET_KEY: django-insecure-ci-key
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
       DEBUG: false
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: test_db
+      DB_USER: postgres
+      DB_PASSWORD: ""
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
