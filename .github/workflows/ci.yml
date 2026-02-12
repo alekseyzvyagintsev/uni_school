@@ -27,9 +27,6 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
         ports:
           - 5432:5432
@@ -69,19 +66,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --no-interaction --no-ansi
-
-      - name: Debug environment variables
-        run: |
-          env | grep DB_ || echo "No DB_ vars"
-          poetry run python -c "
-          import os
-          print('From Python:')
-          print(f'  DB_NAME: {os.getenv(\"DB_NAME\")}')
-          print(f'  DB_USER: {os.getenv(\"DB_USER\", \"<not set>\")}')
-          print(f'  DB_PASSWORD: {os.getenv(\"DB_PASSWORD\")}')
-          print(f'  DB_HOST: {os.getenv(\"DB_HOST\")}')
-          print(f'  DB_PORT: {os.getenv(\"DB_PORT\")}')
-          "
 
       - name: Run migrate
         run: |
