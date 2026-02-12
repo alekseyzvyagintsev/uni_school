@@ -7,20 +7,26 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DB_NAME: test_db
-      DB_USER: postgres
-      DB_PASSWORD: ""
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
+      STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+      DEBUG: false
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+      EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
+      EMAIL_USE_SSL: ${{ secrets.EMAIL_USE_SSL }}
+      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+      EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      DEFAULT_FROM_EMAIL: ${{ secrets.DEFAULT_FROM_EMAIL }}
+      PGUSER: postgres
 
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
         ports:
           - 5432:5432
@@ -51,6 +57,11 @@ jobs:
           path: .venv
           key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
           restore-keys: ${{ runner.os }}-poetry-
+
+      - name: Clear cache if needed
+        if: failure()
+        run: |
+          rm -rf .venv
 
       - name: Install dependencies
         run: |
