@@ -48,6 +48,19 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
 
+      - name: Debug environment variables
+        run: |
+          env | grep DB_ || echo "No DB_ vars"
+          poetry run python -c "
+          import os
+          print('From Python:')
+          print(f'  DB_NAME: {os.getenv(\"DB_NAME\")}')
+          print(f'  DB_USER: {os.getenv(\"DB_USER\", \"<not set>\")}')
+          print(f'  DB_PASSWORD: {os.getenv(\"DB_PASSWORD\")}')
+          print(f'  DB_HOST: {os.getenv(\"DB_HOST\")}')
+          print(f'  DB_PORT: {os.getenv(\"DB_PORT\")}')
+          "
+
       - name: Run migrate
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
