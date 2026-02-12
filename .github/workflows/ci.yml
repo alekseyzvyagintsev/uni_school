@@ -14,7 +14,6 @@ jobs:
       DB_PASSWORD: ""
       DB_HOST: 127.0.0.1
       DB_PORT: 5432
-      PGUSER: runner
 #      STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
 #      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
 #      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
