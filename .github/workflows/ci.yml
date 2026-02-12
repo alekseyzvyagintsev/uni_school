@@ -6,6 +6,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DB_NAME: test_db
+      DB_USER: postgres
+      DB_PASSWORD: ""
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+
     services:
       postgres:
         image: postgres:15
@@ -62,24 +70,10 @@ jobs:
           "
 
       - name: Run migrate
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: test_db
-          DB_USER: postgres
-          DB_PASSWORD: ""
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
         run: |
           poetry run python manage.py migrate
 
       - name: Run tests
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: test_db
-          DB_USER: postgres
-          DB_PASSWORD: ""
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
         run: |
           poetry run python manage.py test
 
