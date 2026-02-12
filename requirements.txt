@@ -92,7 +92,7 @@ SecretStorage==3.5.0
 shellingham==1.5.4
 six==1.17.0
 sqlparse==0.5.5
-stripe==14.1.0
+stripe==14.3.0
 tomlkit==0.13.3
 trove-classifiers==2025.12.1.14
 types-docutils==0.22.3.20251115
