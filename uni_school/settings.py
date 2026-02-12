@@ -104,7 +104,7 @@ DATABASES = {
         "NAME": os.getenv("NAME"),
         "USER": os.getenv("USER"),
         "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": os.getenv('DB_HOST', 'localhost'), #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
+        "HOST": os.getenv('DB_HOST', '127.0.0.1'), #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
         "PORT": os.getenv("PORT", "5432")
     }
 }
