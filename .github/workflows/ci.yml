@@ -9,7 +9,7 @@ jobs:
     env:
       SECRET_KEY: django-insecure-ci-key-for-tests-only
       DEBUG: True
-      DB_NAME: test_db
+      DB_NAME: uni_school
       DB_USER: runner
       DB_PASSWORD: ""
       DB_HOST: 127.0.0.1
@@ -28,7 +28,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: test_db
+          POSTGRES_DB: uni_school
           POSTGRES_USER: runner
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
