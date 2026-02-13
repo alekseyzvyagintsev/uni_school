@@ -10,11 +10,11 @@ jobs:
       IN_DOCKER: True
       SECRET_KEY: django-insecure-ci-key-for-tests-only
       DEBUG: True
-      DB_NAME: uni_school
-      DB_USER: runner
+      DB_NAME: 'uni_school'
+      DB_USER: 'runner'
       DB_PASSWORD: ""
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
+      DB_HOST: '127.0.0.1'
+      DB_PORT: '5432'
       STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
@@ -88,13 +88,13 @@ jobs:
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school worker -l info &
-          sleep 5  # время для запуска воркера
+#          sleep 5  # время для запуска воркера
 
       - name: Start Celery Beat
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
-          sleep 5  # время для запуска бита
+#          sleep 5  # время для запуска бита
 
       - name: Run tests
         run: |
