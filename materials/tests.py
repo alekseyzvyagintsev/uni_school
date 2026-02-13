@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from unittest.mock import call, patch
 
-from django.test import TestCase
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from rest_framework import status
@@ -217,14 +216,16 @@ class LessonTests(APITestCase):
         self.client.force_authenticate(user=self.user)
 
 
-class NotifySubscribersTaskTest(TestCase):
+class NotifySubscribersTaskTest(APITestCase):
     def setUp(self):
-        # Установка временного момента для тестов
+        """Установка начальных данных для тестов"""
         self.now = make_aware(datetime(2023, 8, 1, 12, 0, 0, 89047))
 
         # Создание курсов для разных ситуаций
         self.course_never_notified = Course.objects.create(
-            title="Never Notified", updated_at=self.now - timedelta(hours=3), last_notified_at=None
+            title="Never Notified",
+            updated_at=self.now - timedelta(hours=3),
+            last_notified_at=None,
         )
 
         self.course_recently_updated_and_notified = Course.objects.create(
@@ -234,7 +235,9 @@ class NotifySubscribersTaskTest(TestCase):
         )
 
         self.course_old_update_but_never_notified = Course.objects.create(
-            title="Old Update But Never Notified", updated_at=self.now - timedelta(hours=5), last_notified_at=None
+            title="Old Update But Never Notified",
+            updated_at=self.now - timedelta(hours=5),
+            last_notified_at=None,
         )
 
         self.course_recently_updated_but_not_yet_notified = Course.objects.create(

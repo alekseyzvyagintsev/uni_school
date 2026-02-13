@@ -21,7 +21,13 @@ STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 # Домены, которые будут использоваться
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+# Определение окружения
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local").lower()
+
+# Флаг: работаем ли в Docker?
+IN_DOCKER = ENVIRONMENT == "docker"
 
 # Приложения Django
 INSTALLED_APPS = [
@@ -97,17 +103,28 @@ TEMPLATES = [
 WSGI_APPLICATION = "uni_school.wsgi.application"
 
 #################################
-# База данных
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME", "uni_school"),
-        "USER": os.getenv("USER", "postgres"),
-        "PASSWORD": os.getenv("PASSWORD", ""),
-        "HOST": os.getenv('DB_HOST', '127.0.0.1'), #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
-        "PORT": os.getenv("PORT", "5432")
+if IN_DOCKER:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": os.getenv("POSTGRES_DB", "uni_school"),
+            "USER": os.getenv("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+            "HOST": "db",  # Имя сервиса в docker-compose
+            "PORT": "5432",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": os.getenv("NAME"),
+            "USER": os.getenv("USER"),
+            "PASSWORD": os.getenv("PASSWORD"),
+            "HOST": os.getenv("HOST", "127.0.0.1"),
+            "PORT": os.getenv("PORT", "5432"),
+        }
+    }
 ##################################
 
 # Использование встроенных проверок безопасности
@@ -170,12 +187,20 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 # Настройки кэша
 CACHE_ENABLED = True
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://redis:6380/1", # порт 6380 указан временно для докера, по умолчанию 6379
+if IN_DOCKER:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": "redis://redis:6379/1",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+        }
+    }
 
 #
 APSCHEDULER_DATETIME_FORMAT = "d-m-Y H:i:s"
@@ -251,10 +276,16 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 # Настройки Celery и Redis для асинхронных задач и очереди
 
-# URL-адрес брокера сообщений
-CELERY_BROKER_URL = "redis://redis:6379/0"
-# URL-адрес брокера результатов
-CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+if IN_DOCKER:
+    # URL-адрес брокера сообщений
+    CELERY_BROKER_URL = "redis://redis:6379/0"
+    # URL-адрес брокера результатов
+    CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+else:
+    # URL-адрес брокера сообщений
+    CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+    # URL-адрес брокера результатов
+    CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
 # Настройки сериализации для Celery
 CELERY_ACCEPT_CONTENT = ["json"]
