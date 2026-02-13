@@ -28,8 +28,8 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: DB_NAME
-          POSTGRES_USER: DB_USER
+          POSTGRES_DB: uni_school
+          POSTGRES_USER: runner
           POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
         ports:
           - 5432:5432
@@ -88,13 +88,13 @@ jobs:
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school worker -l info &
-          sleep 10  # время для запуска воркера
+          sleep 5  # время для запуска воркера
 
       - name: Start Celery Beat
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
-          sleep 10  # время для запуска бита
+          sleep 5  # время для запуска бита
 
       - name: Run tests
         run: |
