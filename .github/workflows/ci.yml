@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ENVIRONMENT: docker
+      IN_DOCKER: True
       SECRET_KEY: django-insecure-ci-key-for-tests-only
       DEBUG: True
       DB_NAME: uni_school

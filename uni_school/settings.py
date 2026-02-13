@@ -23,11 +23,8 @@ DEBUG = True if os.getenv("DEBUG") == "True" else False
 # Домены, которые будут использоваться
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
-# Определение окружения
-ENVIRONMENT = os.getenv("ENVIRONMENT", "local").lower()
-
 # Флаг: работаем ли в Docker?
-IN_DOCKER = ENVIRONMENT == "docker"
+IN_DOCKER = False
 
 # Приложения Django
 INSTALLED_APPS = [
@@ -118,9 +115,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": os.getenv("NAME", "DB_NAME"),
-            "USER": os.getenv("USER", "DB_USER"),
-            "PASSWORD": os.getenv("PASSWORD", "DB_PASSWORD"),
+            "NAME": os.getenv("NAME"),
+            "USER": os.getenv("USER"),
+            "PASSWORD": os.getenv("PASSWORD"),
             "HOST": os.getenv("HOST", "127.0.0.1"),
             "PORT": os.getenv("PORT", "5432"),
         }
