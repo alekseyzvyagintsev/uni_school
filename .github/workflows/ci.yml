@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      ENVIRONMENT: docker
       SECRET_KEY: django-insecure-ci-key-for-tests-only
       DEBUG: True
       DB_NAME: uni_school
@@ -29,7 +30,6 @@ jobs:
         env:
           POSTGRES_DB: uni_school
           POSTGRES_USER: runner
-          POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
         ports:
           - 5432:5432
