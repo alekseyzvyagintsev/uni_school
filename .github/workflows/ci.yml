@@ -87,13 +87,13 @@ jobs:
       - name: Start Celery Worker
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
-          poetry run celery -A your_project_name worker -l info &
+          poetry run celery -A uni_school worker -l info &
           sleep 10  # время для запуска воркера
 
       - name: Start Celery Beat
         run: |
           export CELERY_BROKER_URL=redis://localhost:6379/0
-          poetry run celery -A your_project_name beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
+          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
           sleep 10  # время для запуска бита
 
       - name: Run tests

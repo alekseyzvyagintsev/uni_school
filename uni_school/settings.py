@@ -104,9 +104,9 @@ if IN_DOCKER:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": os.getenv("POSTGRES_DB", "uni_school"),
-            "USER": os.getenv("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+            "NAME": os.getenv("POSTGRES_DB") or "uni_school",
+            "USER": os.getenv("POSTGRES_USER") or "postgres",
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD") or "",
             "HOST": "db",  # Имя сервиса в docker-compose
             "PORT": "5432",
         }
