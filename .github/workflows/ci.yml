@@ -111,9 +111,19 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
       - name: Copy files to server
         run: |
-          rsync -avz --exclude '__pycache__' --exclude '.git' --exclude '.venv' . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
+          rsync -avz \
+          --exclude '__pycache__' \
+          --exclude '.git' \
+          --exclude '.venv' \
+          . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
 
       - name: Install and configure Poetry on server
         run: |

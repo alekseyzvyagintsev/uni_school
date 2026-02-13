@@ -102,7 +102,7 @@ def notify_subscribers(course):
     message = f"Курс {course.title} был обновлен. Посетите страницу курса для получения информации."
     result = send_email_to_recipients(subject, message, subscribers_emails)
     if result:
-            course.save(update_fields=["last_notified_at"])
+        course.save(update_fields=["last_notified_at"])
     return result
 
 

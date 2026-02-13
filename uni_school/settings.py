@@ -265,7 +265,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 # Разрешения для CSRF
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-only.example.com",  #  адрес фронтенд-сервера
+    "https://read-only.example.com",  # адрес фронтенд-сервера
     "http://localhost:8000",  # адрес бэкенд-сервера
 ]
 # Разрешение для всех доменов

@@ -5,8 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.reverse import reverse
 
 
