@@ -115,11 +115,11 @@ jobs:
         run: |
           ssh-add -l
 
-#      - name: Add server to known_hosts
-#        run: |
-#          mkdir -p ~/.ssh
-#          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-#          chmod 644 ~/.ssh/known_hosts
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
       - name: Test SSH connection
         run: |
