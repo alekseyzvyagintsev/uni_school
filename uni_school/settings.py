@@ -24,7 +24,7 @@ DEBUG = True if os.getenv("DEBUG") == "True" else False
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Флаг: работаем ли в Docker?
-IN_DOCKER = False if os.getenv("IN_DOCKER") == "False" else True
+IN_DOCKER = os.getenv("IN_DOCKER", "False").lower() in ("true", "1", "on", "yes")
 
 # Приложения Django
 INSTALLED_APPS = [

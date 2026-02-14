@@ -70,11 +70,6 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
           restore-keys: ${{ runner.os }}-poetry-
 
-      - name: Clear cache if needed
-        if: failure()
-        run: |
-          rm -rf .venv
-
       - name: Install dependencies
         run: |
           poetry install --no-interaction --no-ansi
@@ -88,10 +83,10 @@ jobs:
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school worker -l info &
 
-      - name: Start Celery Beat
-        run: |
-          export CELERY_BROKER_URL=redis://localhost:6379/0
-          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
+#      - name: Start Celery Beat
+#        run: |
+#          export CELERY_BROKER_URL=redis://localhost:6379/0
+#          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
 
       - name: Run tests
         run: |
