@@ -149,7 +149,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             sudo apt update
-#            sudo apt install -y python3.12-venv
             python3 -m venv venv
             source venv/bin/activate
             ~/.local/bin/poetry install --no-interaction
