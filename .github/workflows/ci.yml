@@ -2,27 +2,27 @@ name: Django CI
 
 on: [push, pull_request]
 
-env:
-  IN_DOCKER: True
-  SECRET_KEY: django-insecure-ci-key-for-tests-only
-  DEBUG: True
-  DB_NAME: 'uni_school'
-  DB_USER: 'runner'
-  DB_PASSWORD: ""
-  DB_HOST: '127.0.0.1'
-  DB_PORT: '5432'
-  STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
-  EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-  EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-  EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
-  EMAIL_USE_SSL: ${{ secrets.EMAIL_USE_SSL }}
-  EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
-  EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-  DEFAULT_FROM_EMAIL: ${{ secrets.DEFAULT_FROM_EMAIL }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      IN_DOCKER: True
+      SECRET_KEY: django-insecure-ci-key-for-tests-only
+      DEBUG: True
+      DB_NAME: 'uni_school'
+      DB_USER: 'runner'
+      DB_PASSWORD: ""
+      DB_HOST: '127.0.0.1'
+      DB_PORT: '5432'
+      STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+      EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
+      EMAIL_USE_SSL: ${{ secrets.EMAIL_USE_SSL }}
+      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+      EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      DEFAULT_FROM_EMAIL: ${{ secrets.DEFAULT_FROM_EMAIL }}
 
     services:
       postgres:
