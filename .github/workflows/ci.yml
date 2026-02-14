@@ -153,7 +153,12 @@ jobs:
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
             export DB_HOST='${{ secrets.DB_HOST }}'
             export DB_PORT='${{ secrets.DB_PORT }}'
+            export PGPASSWORD="$DB_PASSWORD"
             echo "DB_PASSWORD length: ${#DB_PASSWORD}"
+            if [ -z "$DB_PASSWORD" ]; then
+              echo "DB_PASSWORD пустой!"
+              exit 1
+            fi
           
           until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" --timeout=5; do
             echo "⏳ Ожидание PostgreSQL..."
