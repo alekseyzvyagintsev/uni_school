@@ -82,6 +82,7 @@ jobs:
 
       - name: Run migrate
         run: |
+          export IN_DOCKER=True
           poetry run python manage.py migrate
 
       - name: Start Celery Worker
@@ -98,6 +99,7 @@ jobs:
 
       - name: Run tests
         run: |
+          export IN_DOCKER=True
           poetry run python manage.py test
 
   deploy:
@@ -159,6 +161,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             source venv/bin/activate
+            export IN_DOCKER=True
             export SECRET_KEY='${{ secrets.SECRET_KEY }}'
             export DB_NAME='${{ secrets.DB_NAME }}'
             export DB_USER='${{ secrets.DB_USER }}'
@@ -186,6 +189,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             source venv/bin/activate
+            export IN_DOCKER=True
             export SECRET_KEY='${{ secrets.SECRET_KEY }}'
             ~/.local/bin/poetry run python manage.py cau
           EOF
