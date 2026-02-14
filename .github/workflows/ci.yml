@@ -115,11 +115,11 @@ jobs:
         run: |
           ssh-add -l
 
-      - name: Add server to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+#      - name: Add server to known_hosts
+#        run: |
+#          mkdir -p ~/.ssh
+#          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+#          chmod 644 ~/.ssh/known_hosts
 
       - name: Test SSH connection
         run: |
@@ -148,6 +148,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
+            sudo apt update
+            sudo apt install -y python3.12-venv
             python3 -m venv venv
             source venv/bin/activate
             ~/.local/bin/poetry install --no-interaction
