@@ -106,98 +106,101 @@ jobs:
 #    if: github.ref == 'refs/heads/master'  # или 'main'
 
     steps:
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
+      - name: List files in current directory
+        run: ls -la
 
-      - name: Verify SSH key is loaded
-        run: |
-          ssh-add -l
-
-      - name: Add server to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      - name: Test SSH connection
-        run: |
-          ssh -vvv \
-          -o ConnectTimeout=10 \
-          -o IdentityAgent=$SSH_AUTH_SOCK \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH Подключение успешно установлено'"
-
-      - name: Copy files to server via rsync
-        run: |
-          rsync -avz \
-            --exclude '__pycache__' \
-            --exclude '.git' \
-            --exclude '.venv' \
-            -e "ssh -o IdentityAgent=$SSH_AUTH_SOCK" \
-            . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
-
-      - name: Install and configure Poetry on server
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
-          EOF
-
-      - name: Install dependencies on server
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd ${{ secrets.DEPLOY_DIR }}
-            sudo apt update
-            sudo apt install -y python3.12-venv
-            python3 -m venv venv
-            source venv/bin/activate
-            ~/.local/bin/poetry install --no-interaction
-          EOF
-
-      - name: Run migrations on server
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd ${{ secrets.DEPLOY_DIR }}
-            source venv/bin/activate
-            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
-            export DB_NAME='${{ secrets.DB_NAME }}'
-            export DB_USER='${{ secrets.DB_USER }}'
-            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-            export DB_HOST='${{ secrets.DB_HOST }}'
-            export DB_PORT='${{ secrets.DB_PORT }}'
-            ~/.local/bin/poetry run python manage.py migrate
-          EOF
-
-      - name: Collect static files on server
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd ${{ secrets.DEPLOY_DIR }}
-            source venv/bin/activate
-            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
-            ~/.local/bin/poetry run python manage.py collectstatic --noinput
-          EOF
-
-      - name: Create users in database on server
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd ${{ secrets.DEPLOY_DIR }}
-            source venv/bin/activate
-            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
-            ~/.local/bin/poetry run python manage.py cau
-          EOF
-
-      - name: Restart app on server
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart uni_school.service"
+#      - name: Set up SSH
+#        uses: webfactory/ssh-agent@v0.9.0
+#        with:
+#          ssh-private-key: ${{ secrets.SSH_KEY }}
+#
+#      - name: Verify SSH key is loaded
+#        run: |
+#          ssh-add -l
+#
+#      - name: Add server to known_hosts
+#        run: |
+#          mkdir -p ~/.ssh
+#          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+#          chmod 644 ~/.ssh/known_hosts
+#
+#      - name: Test SSH connection
+#        run: |
+#          ssh -v \
+#          -o ConnectTimeout=10 \
+#          -o IdentityAgent=$SSH_AUTH_SOCK \
+#          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH Подключение успешно установлено'"
+#
+#      - name: Copy files to server via rsync
+#        run: |
+#          rsync -avz \
+#            --exclude '__pycache__' \
+#            --exclude '.git' \
+#            --exclude '.venv' \
+#            -e "ssh -o IdentityAgent=$SSH_AUTH_SOCK" \
+#            . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
+#
+#      - name: Install and configure Poetry on server
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+#            curl -sSL https://install.python-poetry.org | python3 -
+#            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
+#          EOF
+#
+#      - name: Install dependencies on server
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+#            cd ${{ secrets.DEPLOY_DIR }}
+#            sudo apt update
+#            sudo apt install -y python3.12-venv
+#            python3 -m venv venv
+#            source venv/bin/activate
+#            ~/.local/bin/poetry install --no-interaction
+#          EOF
+#
+#      - name: Run migrations on server
+#        env:
+#          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#          DB_NAME: ${{ secrets.DB_NAME }}
+#          DB_USER: ${{ secrets.DB_USER }}
+#          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+#          DB_HOST: ${{ secrets.DB_HOST }}
+#          DB_PORT: ${{ secrets.DB_PORT }}
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+#            cd ${{ secrets.DEPLOY_DIR }}
+#            source venv/bin/activate
+#            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
+#            export DB_NAME='${{ secrets.DB_NAME }}'
+#            export DB_USER='${{ secrets.DB_USER }}'
+#            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+#            export DB_HOST='${{ secrets.DB_HOST }}'
+#            export DB_PORT='${{ secrets.DB_PORT }}'
+#            ~/.local/bin/poetry run python manage.py migrate
+#          EOF
+#
+#      - name: Collect static files on server
+#        env:
+#          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+#            cd ${{ secrets.DEPLOY_DIR }}
+#            source venv/bin/activate
+#            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
+#            ~/.local/bin/poetry run python manage.py collectstatic --noinput
+#          EOF
+#
+#      - name: Create users in database on server
+#        env:
+#          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+#            cd ${{ secrets.DEPLOY_DIR }}
+#            source venv/bin/activate
+#            export SECRET_KEY='${{ secrets.SECRET_KEY }}'
+#            ~/.local/bin/poetry run python manage.py cau
+#          EOF
+#
+#      - name: Restart app on server
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart uni_school.service"
