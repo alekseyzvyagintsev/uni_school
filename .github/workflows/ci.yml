@@ -13,7 +13,7 @@ jobs:
       DB_NAME: 'uni_school'
       DB_USER: 'runner'
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: 'db'
+      DB_HOST: '127.0.0.1'
       DB_PORT: '5432'
       STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}

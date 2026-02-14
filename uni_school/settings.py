@@ -107,8 +107,8 @@ if IN_DOCKER:
             "NAME": os.getenv("DB_NAME", "uni_school"),
             "USER": os.getenv("DB_USER", "runner"),
             "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": "db",  # Имя сервиса в docker-compose
-            "PORT": "5432",
+            "HOST": os.getenv("DB_HOST", "db"),  # Имя сервиса в docker-compose
+            "PORT": ("DB_PORT", "5433"),
         }
     }
 else:
