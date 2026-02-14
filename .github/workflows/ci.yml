@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IN_DOCKER: True
       SECRET_KEY: django-insecure-ci-key-for-tests-only
       DEBUG: True
       DB_NAME: 'uni_school'
@@ -161,7 +160,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             source venv/bin/activate
-            export IN_DOCKER=True
             export SECRET_KEY='${{ secrets.SECRET_KEY }}'
             export DB_NAME='${{ secrets.DB_NAME }}'
             export DB_USER='${{ secrets.DB_USER }}'
@@ -189,7 +187,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             source venv/bin/activate
-            export IN_DOCKER=True
             export SECRET_KEY='${{ secrets.SECRET_KEY }}'
             ~/.local/bin/poetry run python manage.py cau
           EOF
