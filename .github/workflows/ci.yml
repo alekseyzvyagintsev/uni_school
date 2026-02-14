@@ -123,7 +123,10 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          ssh -v -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH OK'"
+          ssh -v \
+          -o ConnectTimeout=10 \
+          -o IdentityAgent=$SSH_AUTH_SOCK \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH Подключение успешно установлено'"
 
       - name: Copy files to server via rsync
         run: |
