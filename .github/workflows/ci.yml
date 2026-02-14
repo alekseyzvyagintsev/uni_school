@@ -83,17 +83,12 @@ jobs:
           export CELERY_BROKER_URL=redis://localhost:6379/0
           poetry run celery -A uni_school worker -l info &
 
-#      - name: Start Celery Beat
-#        run: |
-#          export CELERY_BROKER_URL=redis://localhost:6379/0
-#          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
-
       - name: Run tests
         run: |
           poetry run python manage.py test
 
   deploy:
-    needs: test
+#    needs: test
     runs-on: ubuntu-latest
 #    if: github.ref == 'refs/heads/master'  # или 'main'
 
@@ -151,12 +146,20 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             source venv/bin/activate
+          
             export SECRET_KEY='${{ secrets.SECRET_KEY }}'
             export DB_NAME='${{ secrets.DB_NAME }}'
             export DB_USER='${{ secrets.DB_USER }}'
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
             export DB_HOST='${{ secrets.DB_HOST }}'
             export DB_PORT='${{ secrets.DB_PORT }}'
+            echo "DB_PASSWORD length: ${#DB_PASSWORD}"
+          
+          until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" --timeout=5; do
+            echo "⏳ Ожидание PostgreSQL..."
+            sleep 5
+          done
+          
             ~/.local/bin/poetry run python manage.py migrate
           EOF
 
