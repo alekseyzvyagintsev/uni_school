@@ -111,19 +111,28 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Add server to known hosts
+      - name: Verify SSH key is loaded
+        run: |
+          ssh-add -l
+
+      - name: Add server to known_hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Copy files to server
+      - name: Test SSH connection
+        run: |
+          ssh -v -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH OK'"
+
+      - name: Copy files to server via rsync
         run: |
           rsync -avz \
-          --exclude '__pycache__' \
-          --exclude '.git' \
-          --exclude '.venv' \
-          . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
+            --exclude '__pycache__' \
+            --exclude '.git' \
+            --exclude '.venv' \
+            -e "ssh -o IdentityAgent=$SSH_AUTH_SOCK" \
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}
 
       - name: Install and configure Poetry on server
         run: |
