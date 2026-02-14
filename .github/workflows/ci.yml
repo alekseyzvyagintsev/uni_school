@@ -21,93 +21,91 @@ env:
   DEFAULT_FROM_EMAIL: ${{ secrets.DEFAULT_FROM_EMAIL }}
 
 jobs:
-#  test:
-#    runs-on: ubuntu-latest
-#
-#    services:
-#      postgres:
-#        image: postgres:15
-#        env:
-#          POSTGRES_DB: uni_school
-#          POSTGRES_USER: runner
-#          POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
-#        ports:
-#          - 5432:5432
-#        options: >-
-#          --health-cmd pg_isready
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-#
-#      redis:
-#        image: redis:7-alpine
-#        ports:
-#          - 6379:6379
-#        options: >-
-#          --health-cmd "redis-cli ping"
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-#
-#    steps:
-#      - name: Check out code
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.12'
-#
-#      - name: Install Poetry
-#        run: |
-#          curl -sSL https://install.python-poetry.org | python3 -
-#          echo "$HOME/.local/bin" >> $GITHUB_PATH
-#          poetry config virtualenvs.in-project true
-#
-#      - name: Cache virtual environment
-#        uses: actions/cache@v3
-#        with:
-#          path: .venv
-#          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
-#          restore-keys: ${{ runner.os }}-poetry-
-#
-#      - name: Clear cache if needed
-#        if: failure()
-#        run: |
-#          rm -rf .venv
-#
-#      - name: Install dependencies
-#        run: |
-#          poetry install --no-interaction --no-ansi
-#
-#      - name: Run migrate
-#        run: |
-#          poetry run python manage.py migrate
-#
-#      - name: Start Celery Worker
-#        run: |
-#          export CELERY_BROKER_URL=redis://localhost:6379/0
-#          poetry run celery -A uni_school worker -l info &
-##          sleep 5  # время для запуска воркера
-#
-#      - name: Start Celery Beat
-#        run: |
-#          export CELERY_BROKER_URL=redis://localhost:6379/0
-#          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
-##          sleep 5  # время для запуска бита
-#
-#      - name: Run tests
-#        run: |
-#          poetry run python manage.py test
-
-  deploy:
-#    needs: test
+  test:
     runs-on: ubuntu-latest
-#    if: github.ref == 'refs/heads/master'  # или 'main'
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: uni_school
+          POSTGRES_USER: runner
+          POSTGRES_HOST_AUTH_METHOD: trust  # разрешает подключения без пароля
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.in-project true
+
+      - name: Cache virtual environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
+          restore-keys: ${{ runner.os }}-poetry-
+
+      - name: Clear cache if needed
+        if: failure()
+        run: |
+          rm -rf .venv
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-ansi
+
+      - name: Run migrate
+        run: |
+          poetry run python manage.py migrate
+
+      - name: Start Celery Worker
+        run: |
+          export CELERY_BROKER_URL=redis://localhost:6379/0
+          poetry run celery -A uni_school worker -l info &
+#          sleep 5  # время для запуска воркера
+
+      - name: Start Celery Beat
+        run: |
+          export CELERY_BROKER_URL=redis://localhost:6379/0
+          poetry run celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler &
+#          sleep 5  # время для запуска бита
+
+      - name: Run tests
+        run: |
+          poetry run python manage.py test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/master'  # или 'main'
+
+    steps:
 
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -152,7 +150,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
             sudo apt update
-            sudo apt install -y python3.12-venv
+#            sudo apt install -y python3.12-venv
             python3 -m venv venv
             source venv/bin/activate
             ~/.local/bin/poetry install --no-interaction
