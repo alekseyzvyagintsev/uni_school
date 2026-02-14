@@ -81,7 +81,6 @@ jobs:
 
       - name: Run migrate
         run: |
-          export IN_DOCKER=True
           poetry run python manage.py migrate
 
       - name: Start Celery Worker
@@ -98,7 +97,6 @@ jobs:
 
       - name: Run tests
         run: |
-          export IN_DOCKER=True
           poetry run python manage.py test
 
   deploy:
