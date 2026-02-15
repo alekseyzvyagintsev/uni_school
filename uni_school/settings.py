@@ -68,6 +68,7 @@ SIMPLE_JWT = {
 # Настройки мидлварей для CORS и CSRF
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -158,7 +159,7 @@ USE_I18N = True  # позволит отображать страницы сай
 USE_TZ = True  # сохраняет временные метки в базе данных в UTC и автоматически конвертирует их в локальное
 
 # URL-путь, используемый браузером для обращения к статическим ресурсам
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 # Относительный путь для сбора статических файлов
 STATIC_ROOT = BASE_DIR / "collected_static"
