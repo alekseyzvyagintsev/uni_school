@@ -21,7 +21,7 @@ STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 # Домены, которые будут использоваться
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"] # ["localhost", "127.0.0.1"]
 
 # Флаг: работаем ли в Docker?
 IN_DOCKER = os.getenv("IN_DOCKER", "False").lower() in ("true", "1", "on", "yes")
