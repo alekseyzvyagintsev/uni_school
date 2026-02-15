@@ -23,7 +23,10 @@ services:
       - IN_DOCKER=True
     env_file:
       - .env
-    command: bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cau && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py migrate --noinput && 
+                      python manage.py collectstatic --noinput && 
+                      python manage.py cau && 
+                      python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
       - static_volume:/app/collected_static
