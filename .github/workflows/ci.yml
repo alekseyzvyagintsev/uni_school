@@ -128,10 +128,18 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd ${{ secrets.DEPLOY_DIR }}
+          # Скачать новый образ
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }}
+          # Остановить старый контейнер
           docker stop uni-school || true
+          # Удалить старый контейнер
           docker rm uni-school || true
+          # Удалить старый образ (экономия места)
+          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:$(cat current_sha.txt) || true
+          # Запустить новый контейнер
           docker run -d --name uni-school -p 80:8000 ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }}
+          # Обновить текущий SHA
+          echo ${{ github.sha }} > current_sha.txt
           EOF
 
 #      - name: Create .env file on server
