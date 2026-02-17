@@ -101,28 +101,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "uni_school.wsgi.application"
 
 #################################
-if IN_DOCKER:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": os.getenv("DB_NAME", "uni_school"),
-            "USER": os.getenv("DB_USER", "runner"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": os.getenv("DB_HOST", "db"),  # Имя сервиса в docker-compose
-            "PORT": os.getenv("DB_PORT", "5433"),
-        }
+
+DATABASES = {
+"default": {
+    "ENGINE": "django.db.backends.postgresql",
+    "NAME": os.getenv("DB_NAME", "uni_school"),
+    "USER": os.getenv("DB_USER", "postgres"),
+    "PASSWORD": os.getenv("DB_PASSWORD", ""),
+    "HOST": os.getenv("DB_HOST", "localhost" if not IN_DOCKER else "db"),
+    "PORT": os.getenv("DB_PORT", "5432"),
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": os.getenv("DB_NAME", "uni_school"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT"),
-        }
-    }
+}
 ##################################
 
 # Использование встроенных проверок безопасности

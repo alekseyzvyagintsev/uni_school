@@ -31,6 +31,7 @@ pillow = "^12.1.1"
 freezegun = "^1.5.5"
 redis = "^7.1.1"
 whitenoise = "^6.11.0"
+gunicorn = "^25.1.0"
 
 [tool.poetry.group.lint.dependencies]
 flake8 = "^7.1.1"
