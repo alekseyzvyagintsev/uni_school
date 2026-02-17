@@ -101,8 +101,10 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker compose build --push --tag ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }} .
-#          docker push ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }}
+          export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school-app
+          export IMAGE_TAG=${{ github.sha }}
+          docker compose build web
+          docker push $APP_IMAGE:$IMAGE_TAG
 
   deploy:
     runs-on: ubuntu-latest

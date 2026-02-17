@@ -19,6 +19,7 @@ services:
 
   web:
     build: .
+    image: ${APP_IMAGE:-uni_school-app}:${IMAGE_TAG:-latest}
     env_file:
       - .env
     environment:
@@ -72,7 +73,7 @@ services:
       retries: 3
 
   celery:
-    build: .
+    image: ${APP_IMAGE:-uni_school-app}:${IMAGE_TAG:-latest}
     env_file:
       - .env
     environment:
@@ -92,7 +93,7 @@ services:
       retries: 3
 
   beat:
-    build: .
+    image: ${APP_IMAGE:-uni_school-app}:${IMAGE_TAG:-latest}
     env_file:
       - .env
     environment:
