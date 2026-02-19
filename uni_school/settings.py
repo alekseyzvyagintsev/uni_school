@@ -21,7 +21,10 @@ STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 # Домены, которые будут использоваться
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"]  # ["localhost", "127.0.0.1"]
+
+# Флаг: работаем ли в Docker?
+IN_DOCKER = os.getenv("IN_DOCKER", "False").lower() in ("true", "1", "on", "yes")
 
 # Приложения Django
 INSTALLED_APPS = [
@@ -65,6 +68,7 @@ SIMPLE_JWT = {
 # Настройки мидлварей для CORS и CSRF
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -97,16 +101,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "uni_school.wsgi.application"
 
 #################################
-# База данных
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME"),
-        "USER": os.getenv("USER"),
-        "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": "db", #- для докера, а для локального запуска "HOST": os.getenv("HOST") из .ENV,
-        "PORT": os.getenv("PORT", "5432"),
-    }
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "uni_school"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "localhost" if not IN_DOCKER else "db"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    },
 }
 ##################################
 
@@ -144,7 +148,7 @@ USE_I18N = True  # позволит отображать страницы сай
 USE_TZ = True  # сохраняет временные метки в базе данных в UTC и автоматически конвертирует их в локальное
 
 # URL-путь, используемый браузером для обращения к статическим ресурсам
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 # Относительный путь для сбора статических файлов
 STATIC_ROOT = BASE_DIR / "collected_static"
@@ -170,12 +174,20 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 # Настройки кэша
 CACHE_ENABLED = True
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
+if IN_DOCKER:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": "redis://redis:6379/1",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+        }
+    }
 
 #
 APSCHEDULER_DATETIME_FORMAT = "d-m-Y H:i:s"
@@ -206,7 +218,7 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "sending": {
+        "materials": {
             "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": False,
@@ -243,7 +255,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 # Разрешения для CSRF
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-only.example.com",  #  адрес фронтенд-сервера
+    "https://read-only.example.com",  # адрес фронтенд-сервера
     "http://localhost:8000",  # адрес бэкенд-сервера
 ]
 # Разрешение для всех доменов
@@ -251,10 +263,16 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 # Настройки Celery и Redis для асинхронных задач и очереди
 
-# URL-адрес брокера сообщений
-CELERY_BROKER_URL = "redis://redis:6379/0"
-# URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+if IN_DOCKER:
+    # URL-адрес брокера сообщений
+    CELERY_BROKER_URL = "redis://redis:6379/0"
+    # URL-адрес брокера результатов
+    CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+else:
+    # URL-адрес брокера сообщений
+    CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+    # URL-адрес брокера результатов
+    CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
 # Настройки сериализации для Celery
 CELERY_ACCEPT_CONTENT = ["json"]

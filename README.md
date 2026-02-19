@@ -4,38 +4,39 @@
 
 ---
 
-## 🧩 Главные компоненты
+## Главные компоненты
 
-| Компонент | Версия / Использование |
-|--------|---------------------|
-| Django | 5.0+ |
-| Python | 3.12 |
-| PostgreSQL | 16.0 |
-| Redis | 7.4.7 |
-| Celery | Для фоновых задач |
-| django-celery-beat | Периодические задачи |
-| Docker | Контейнеризация |
-| docker-compose | Оркестрация сервисов |
+| Компонент            | Версия / Использование |
+|----------------------|------------------------|
+| Django               | 5.0+                   |
+| Python               | 3.12                   |
+| PostgreSQL           | 16.0                   |
+| nginx                | WEB-сервер             |
+| Redis                | 7                      |
+| Celery               | Для фоновых задач      |
+| django-celery-beat   | Периодические задачи   |
+| Docker               | Контейнеризация        |
+| docker-compose       | Оркестрация сервисов   |
 
 ---
 
-## 📁 Структура проекта
-.  ├── Dockerfile
-   ├── docker-compose.yml
-   ├── requirements.txt
-   ├── .env
-   ├── config/
-   │   └── redis.conf
-   ├── uni_school/
-   │   ├── settings.py
-   │   ├── urls.py
-   │   └── ...
-   ├── users/ # Управление пользователями
-   ├── materials/ # Материалы курсов
-   └── ...
+## Структура проекта
+   ├── Dockerfile \
+   ├── docker-compose.yml \
+   ├── requirements.txt \
+   ├── .env \
+   ├── config/ \
+   │   └── redis.conf \
+   ├── uni_school/ \
+   │   ├── settings.py \
+   │   ├── urls.py \
+   │   └── ... \
+   ├── users/ # Управление пользователями \
+   ├── materials/ # Материалы курсов \
+   └── ... \
 ---
 
-## 🛠 Настройка окружения
+## Настройка окружения
 
 ### Создайте файл `.env`
 - Используйте в корне проекта файл `.env.sample`.
@@ -49,7 +50,7 @@
 
 ### Django
 - SECRET_KEY=django-insecure-... # замените на свой
-- DEBUG=True
+- DEBUG=False
 
 ### Email (Yandex)
 - EMAIL_HOST=smtp.yandex.ru 
@@ -59,48 +60,64 @@
 - EMAIL_HOST_USER=*******@yandex.ru 
 - EMAIL_HOST_PASSWORD=***************** 
 - DEFAULT_FROM_EMAIL=*******@yandex.ru
-### Celery
+### Celery (в settings.py)
 - CELERY_BROKER_URL=redis://redis:6379/0 
 - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
 
-> 💡 Сохраните `.env` в корне проекта.
+> Сохраните `.env` в корне проекта.
 
 ---
 
-## 🐳 Запуск приложения
+# !!! ВАЖНО !!!
+### При поднятии проекта создается база данных,
+### для доступа к ней создается 3 пользователя:
+- admin@example.com
+- moderator@example.com
+- user@example.com
+### с одинаковыми паролями 'qwer1234'
+# !!!! ОБЯЗАТЕЛЬНО СМЕНИТЕ ПАРОЛИ !!!!
 
-### 1. Сборка и запуск
-- docker-compose up --build # Сборка и запуск
-- docker-compose up -d # Запуск в фоновом режиме
+# !!! Также важно !!!
+### Для правильной работы прав доступа, при создании новых пользователей,
+### чтобы они были активированы и входили в соответствующие для них группы.
+- 'Администратор'
+- 'Модератор'
+- 'Пользователь'
+
+## Запуск приложения
+
+### 1. Сборка и запуск: bash
+- docker compose up --build # Сборка и запуск
+- docker compose up -d # Запуск в фоновом режиме
 - Приложение будет доступно по адресу: `http://localhost:8000`
 
-### 2. Остановка и очистка
-- bash docker-compose down -v # Остановка и очистка предыдущих контейнеров и томов
-- docker-compose down -v --remove-orphans # Остановка и очистка неиспользуемых контейнеров
-- docker system prune -a # Очистка всех контейнеров, образов и томов
+### 2. Остановка и очистка: bash
+- docker-compose down -v # Остановка и очистка предыдущих контейнеров и томов
+- docker compose down -v --remove-orphans # Остановка и очистка неиспользуемых контейнеров
+- docker system prune -a # Очистка всех контейнеров, образов и томов !!!! Необратимо для восстановления.
 - docker volume prune # Очистка томов
-- docker-compose down # Остановка
+- docker compose down # Остановка
 
-### 3. Проверка
-- docker-compose logs -f # Просмотр логов
-- docker-compose ps # Список запущенных сервисов
-
----
-
-## ⚙️ Архитектура сервисов (`docker-compose.yml`)
-
-| Сервис | Назначение |
-|-------|----------|
-| `db` | PostgreSQL 16.0, хранение данных |
-| `redis` | Хранилище для Celery и кэширования |
-| `web` | Django-сервер (`runserver`) |
-| `celery` | Воркер для фоновых задач |
-| `beat` | Планировщик периодических задач |
+### 3. Проверка: bash
+- docker compose logs -f # Просмотр логов
+- docker compose ps # Список запущенных сервисов
 
 ---
 
-### 🔗 Зависимости
+## Архитектура сервисов (`docker-compose.yml`)
+
+| Сервис   | Назначение                         |
+|----------|------------------------------------|
+| `db`     | PostgreSQL 16.0, хранение данных   |
+| `redis`  | Хранилище для Celery и кэширования |
+| `web`    | Django-сервер (`runserver`)        |
+| `celery` | Воркер для фоновых задач           |
+| `beat`   | Планировщик периодических задач    |
+
+---
+
+### Зависимости
 
 - `web`, `celery`, `beat` зависят от `db` и `redis`
 - `web` применяет миграции при старте
@@ -108,7 +125,7 @@
 
 ---
 
-## 🔄 Миграции и инициализация
+## Миграции и инициализация
 
 ### Важно: Миграции выполняются в `web`
 - yaml command: bash -c "python manage.py migrate --noinput && ..."
@@ -117,7 +134,7 @@
 
 ---
 
-## 🧵 Celery и фоновые задачи
+## Celery и фоновые задачи
 
 ### Сервис `celery`
 
@@ -139,18 +156,18 @@
 
 ---
 
-## 🔄 Healthchecks
+## Healthchecks
 
-| Сервис | Проверка |
-|-------|--------|
-| `db` | `pg_isready -U $$USER -d $$NAME -h localhost` |
-| `redis` | `redis-cli ping` |
+| Сервис  | Проверка                                      |
+|---------|-----------------------------------------------|
+| `db`    | `pg_isready -U $$USER -d $$NAME -h localhost` |
+| `redis` | `redis-cli ping`                              |
 
-> ❗ `$$` в Docker Compose означает одинарный `$` — используется для подстановки переменных в `healthcheck`
+> `$$` в Docker Compose означает одинарный `$` — используется для подстановки переменных в `healthcheck`
 
 ---
 
-## 📦 Dockerfile
+## Dockerfile
 
 ### dockerfile 
 - FROM python:3.12 
@@ -166,11 +183,11 @@
 - EXPOSE 8000
 
 
-> ⚠️ Команда запуска (`command`) задаётся в `docker-compose.yml`, не в `Dockerfile`
+> Команда запуска (`command`) задаётся в `docker-compose.yml`, не в `Dockerfile`
 
 ---
 
-## 🧪 Тестирование
+## Тестирование
 
 После запуска проверьте:
 bash
@@ -187,7 +204,7 @@ bash
 
 ---
 
-## 🔒 Рекомендации
+## Рекомендации
 
 ### 1. Безопасность
 - Не используйте `DEBUG=True` на продакшене
@@ -199,17 +216,17 @@ bash
 
 ---
 
-## 🆘 Возможные ошибки и решения
+## Возможные ошибки и решения
 
-| Ошибка | Решение |
-|------|--------|
-| `FATAL: password authentication failed` | Убедитесь, что `POSTGRES_USER` и `POSTGRES_PASSWORD` переданы в `db` |
-| `migrate: duplicate key` | Запускайте `migrate` только в одном сервисе |
-| `KeyError: 'id'` | Вторичная ошибка Docker Compose — можно игнорировать, если сервисы работают |
+| Ошибка                                  | Решение                                                                     |
+|-----------------------------------------|-----------------------------------------------------------------------------|
+| `FATAL: password authentication failed` | Убедитесь, что `POSTGRES_USER` и `POSTGRES_PASSWORD` переданы в `db`        |
+| `migrate: duplicate key`                | Запускайте `migrate` только в одном сервисе                                 |
+| `KeyError: 'id'`                        | Вторичная ошибка Docker Compose — можно игнорировать, если сервисы работают |
 
 ---
 
-## 📞 Поддержка
+## Поддержка
 
 Разработчик: Алексей  
 Email: alex0236889@yandex.ru  

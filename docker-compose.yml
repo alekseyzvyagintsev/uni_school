@@ -4,26 +4,71 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${NAME}
-      POSTGRES_PASSWORD: ${PASSWORD}
-      DATABASE_HOST: db
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
-      test: bash -c "pg_isready -U $$USER -d $$NAME -h localhost"
+      test: bash -c "pg_isready -U $DB_USER -d $DB_NAME -h localhost -p 5432"
       interval: 10s
       timeout: 5s
       retries: 5
 
+  web:
+    image: ${APP_IMAGE:-uni_school}:${IMAGE_TAG:-latest}
+    env_file:
+      - .env
+    environment:
+      IN_DOCKER: "True"
+      DB_HOST: db
+    command: >
+      bash -c "
+        python manage.py migrate --noinput && 
+        python manage.py collectstatic --noinput && 
+        python manage.py cau &&
+        gunicorn uni_school.wsgi:application --bind 0.0.0.0:8000
+      "
+    volumes:
+      - static_volume:/code/collected_static
+      - media_volume:/code/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/collected_static
+    depends_on:
+      - web
+
   redis:
     image: redis:7.4.7
+    env_file:
+      - .env
+    environment:
+      IN_DOCKER: "True"
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     volumes:
       - "./config/redis.conf:/usr/local/etc/redis/redis.conf"
+      - redis_data:/data
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -31,40 +76,38 @@ services:
       retries: 3
 
   celery:
-    build: .
+    image: ${APP_IMAGE:-uni_school}:${IMAGE_TAG:-latest}
     env_file:
       - .env
+    environment:
+      IN_DOCKER: "True"
     command: bash -c "celery -A uni_school worker -l info"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pgrep", "celery"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   beat:
-    build: .
+    image: ${APP_IMAGE:-uni_school}:${IMAGE_TAG:-latest}
     env_file:
       - .env
-    command: bash -c "celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      web:
-        condition: service_started
-
-  web:
-    build: .
-    env_file:
-      - .env
-    command: bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cau && python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - .:/code
-      - static_volume:/code/collected_static
-      - static_volume:/code/media
-    ports:
-      - "8000:8000"
+    environment:
+      IN_DOCKER: "True"
+    command: >
+      bash -c "
+        echo 'Waiting for DB migrations to be applied...' &&
+        until python /code/manage.py migrate --list > /dev/null 2>&1; do
+          sleep 5
+        done &&
+        echo 'Migrations are ready. Starting celery beat...' &&
+        celery -A uni_school beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
     depends_on:
       db:
         condition: service_healthy
@@ -74,3 +117,5 @@ services:
 volumes:
   postgres_data:
   static_volume:
+  redis_data:
+  media_volume:
