@@ -183,7 +183,11 @@ jobs:
             # Удалить старый образ (если был)
             if [ -f current_sha.txt ]; then
               OLD_TAG=$(cat current_sha.txt)
-              docker rmi $APP_IMAGE:$OLD_TAG || true
+              if [ -n "$OLD_TAG" ]; then
+                docker rmi $APP_IMAGE:$OLD_TAG || echo "Не удалось удалить старый образ $APP_IMAGE:$OLD_TAG, возможно, он не существует"
+              fi
+            else
+              echo "Файл current_sha.txt не найден — пропускаем удаление старого образа."
             fi
           
             # Запустить новый контейнер
