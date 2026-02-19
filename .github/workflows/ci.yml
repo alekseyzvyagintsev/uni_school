@@ -90,20 +90,24 @@ jobs:
   build:
 #    needs: test
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         run: |
           echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         run: |
           export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school
           export IMAGE_TAG=${{ github.sha }}
-          docker compose build web
+          docker build -t $APP_IMAGE:$IMAGE_TAG .
+
+      - name: Push Docker image
+        run: |
+          export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school
+          export IMAGE_TAG=${{ github.sha }}
           docker push $APP_IMAGE:$IMAGE_TAG
 
   deploy:
@@ -123,46 +127,63 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+
+      - name: Copy docker-compose.yml to server
+        run: |
+          scp docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/docker-compose.yml
+
+      - name: Create .env file on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd ${{ secrets.DEPLOY_DIR }}
+          cat > .env << 'INNER_EOF'
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          STRIPE_KEY=${{ secrets.STRIPE_KEY }}
+          DEBUG=False
+          IN_DOCKER=False
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+          EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}
+          EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}
+          EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}
+          DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
+          INNER_EOF
+          EOF
           
       - name: Deploy Docker image
         run: |
+          # Скрипт для деплоя на сервер и перезапуска контейнера
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd ${{ secrets.DEPLOY_DIR }}
-          # Скачать новый образ
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }}
-          # Остановить старый контейнер
-          docker stop uni-school || true
-          # Удалить старый контейнер
-          docker rm uni-school || true
-          # Удалить старый образ (экономия места)
-          docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:$(cat current_sha.txt) || true
-          # Запустить новый контейнер
-          docker run -d --name uni-school -p 80:8000 ${{ secrets.DOCKERHUB_USERNAME }}/uni-school:${{ github.sha }}
-          # Обновить текущий SHA
-          echo ${{ github.sha }} > current_sha.txt
-          EOF
+            set -e  # остановить выполнение при ошибке
+            cd ${{ secrets.DEPLOY_DIR }}  # перейти в директорию деплоя
+          
+            # Переменные
+            export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school  # имя образа с Docker Hub
+            export IMAGE_TAG=${{ github.sha }}  # тег для деплоя
 
-#      - name: Create .env file on server
-#        run: |
-#          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-#            cd ${{ secrets.DEPLOY_DIR }}
-#          cat > .env << 'INNER_EOF'
-#          SECRET_KEY=${{ secrets.SECRET_KEY }}
-#          STRIPE_KEY=${{ secrets.STRIPE_KEY }}
-#          DEBUG=False
-#          IN_DOCKER=False
-#          DB_NAME=${{ secrets.DB_NAME }}
-#          DB_USER=${{ secrets.DB_USER }}
-#          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-#          DB_HOST=${{ secrets.DB_HOST }}
-#          DB_PORT=${{ secrets.DB_PORT }}
-#          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
-#          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
-#          EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}
-#          EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}
-#          EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}
-#          EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}
-#          DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
-#          INNER_EOF
-#          echo "✅ Файл .env создан"
-#          EOF
+            # Скачать новый образ
+            docker pull $APP_IMAGE:$IMAGE_TAG
+
+            # Остановить и удалить старые контейнеры
+            docker compose down
+
+            # Удалить старый образ (если был)
+            if [ -f current_sha.txt ]; then
+              OLD_TAG=$(cat current_sha.txt)
+              docker rmi $APP_IMAGE:$OLD_TAG || true
+            fi
+          
+            # Запустить новый контейнер
+            docker compose up -d
+          
+            # Обновить текущий SHA
+            echo ${{ github.sha }} > current_sha.txt
+          
+            echo "Деплой завершен: $APP_IMAGE:$IMAGE_TAG"
+          EOF
