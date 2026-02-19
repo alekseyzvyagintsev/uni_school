@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework.reverse import reverse
@@ -18,7 +18,7 @@ def health(request):
 
 
 urlpatterns = [
-    path('health/', health),
+    path("health/", health),
     path("admin/", admin.site.urls),
     path("admindocs/", include("django.contrib.admindocs.urls")),
     path("", include("materials.urls", namespace="material_urls")),

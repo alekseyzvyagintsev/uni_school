@@ -21,7 +21,7 @@ STRIPE_API_KEY = os.getenv("STRIPE_KEY")
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
 # Домены, которые будут использоваться
-ALLOWED_HOSTS = ["*"] # ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]  # ["localhost", "127.0.0.1"]
 
 # Флаг: работаем ли в Docker?
 IN_DOCKER = os.getenv("IN_DOCKER", "False").lower() in ("true", "1", "on", "yes")
@@ -103,14 +103,14 @@ WSGI_APPLICATION = "uni_school.wsgi.application"
 #################################
 
 DATABASES = {
-"default": {
-    "ENGINE": "django.db.backends.postgresql",
-    "NAME": os.getenv("DB_NAME", "uni_school"),
-    "USER": os.getenv("DB_USER", "postgres"),
-    "PASSWORD": os.getenv("DB_PASSWORD", ""),
-    "HOST": os.getenv("DB_HOST", "localhost" if not IN_DOCKER else "db"),
-    "PORT": os.getenv("DB_PORT", "5432"),
-    }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "uni_school"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "localhost" if not IN_DOCKER else "db"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    },
 }
 ##################################
 
