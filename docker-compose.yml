@@ -44,8 +44,7 @@ services:
       retries: 10
 
   nginx:
-    build:
-      context: ./nginx
+    image: nginx:alpine
     ports:
       - "8080:80"
     volumes:
