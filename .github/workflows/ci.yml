@@ -174,14 +174,14 @@ jobs:
             export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school  # имя образа с Docker Hub
             export IMAGE_TAG=${{ github.sha }}  # тег для деплоя
 
-#            # Скачать новый образ
-#            docker pull $APP_IMAGE:$IMAGE_TAG
+            # Скачать новый образ
+            # docker pull $APP_IMAGE:$IMAGE_TAG
 
             # Остановить и удалить старые контейнеры
             docker stop myapp || true
 
             # Удалить старый образ (если был)
-            docker rm $APP_IMAGE:$OLD_TAG || true
+            # docker rm $APP_IMAGE:$OLD_TAG || true
           
             # Запустить новый контейнер
             docker compose up -d
