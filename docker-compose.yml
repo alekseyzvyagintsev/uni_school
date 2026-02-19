@@ -84,8 +84,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - .:/code
     healthcheck:
       test: ["CMD", "pgrep", "celery"]
       interval: 10s
@@ -112,8 +110,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - .:/code
 
 volumes:
   postgres_data:

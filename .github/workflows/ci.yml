@@ -132,28 +132,32 @@ jobs:
         run: |
           scp docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/docker-compose.yml
 
+      - name: Copy nginx config to server
+        run: |
+          scp -r ./nginx ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/nginx
+
       - name: Create .env file on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd ${{ secrets.DEPLOY_DIR }}
-          cat > .env << 'INNER_EOF'
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          STRIPE_KEY=${{ secrets.STRIPE_KEY }}
-          DEBUG=False
-          IN_DOCKER=False
-          DB_NAME=${{ secrets.DB_NAME }}
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_PORT=${{ secrets.DB_PORT }}
-          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
-          EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}
-          EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}
-          EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}
-          EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}
-          DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
-          INNER_EOF
+            cat > .env << 'INNER_EOF'
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            STRIPE_KEY=${{ secrets.STRIPE_KEY }}
+            DEBUG=False
+            IN_DOCKER=False
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+            EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+            EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}
+            EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}
+            EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}
+            EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}
+            DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}
+            INNER_EOF
           EOF
           
       - name: Deploy Docker image
