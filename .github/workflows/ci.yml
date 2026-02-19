@@ -108,6 +108,8 @@ jobs:
       run: flake8 .
 
   build:
+    if: github.ref == 'refs/heads/master'  # или 'main'
+
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
@@ -131,10 +133,10 @@ jobs:
           docker push $APP_IMAGE:$IMAGE_TAG
 
   deploy:
+    if: github.ref == 'refs/heads/master'  # или 'main'
+
     runs-on: ubuntu-latest
     needs: build
-
-#    if: github.ref == 'refs/heads/master'  # или 'main'
 
     steps:
       - name: Check out code
@@ -193,9 +195,6 @@ jobs:
             # Переменные
             export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/uni-school  # имя образа с Docker Hub
             export IMAGE_TAG=${{ github.sha }}  # тег для деплоя
-
-            # Скачать новый образ
-            # docker pull $APP_IMAGE:$IMAGE_TAG
 
             # Остановить и удалить старые контейнеры
             docker compose down || true
