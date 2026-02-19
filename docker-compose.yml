@@ -18,16 +18,20 @@ services:
       retries: 5
 
   web:
-    build: .
     image: ${APP_IMAGE:-uni_school}:${IMAGE_TAG:-latest}
     env_file:
       - .env
     environment:
       IN_DOCKER: "True"
       DB_HOST: db
-    command: bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cau && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "
+        python manage.py migrate --noinput && 
+        python manage.py collectstatic --noinput && 
+        python manage.py cau &&
+        gunicorn uni_school.wsgi:application --bind 0.0.0.0:8000
+      "
     volumes:
-      - .:/code
       - static_volume:/code/collected_static
       - media_volume:/code/media
     ports:

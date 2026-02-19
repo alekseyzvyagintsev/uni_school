@@ -178,20 +178,13 @@ jobs:
             # docker pull $APP_IMAGE:$IMAGE_TAG
 
             # Остановить и удалить старые контейнеры
-            docker stop myapp || true
+            docker compose down || true
 
             # Удалить старый образ (если был)
             # docker rm $APP_IMAGE:$OLD_TAG || true
           
             # Запустить новый контейнер
             docker compose up -d
-            
-            # Запустить новый контейнер
-            docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-      
-          
-            # Обновить текущий SHA
-            echo ${{ github.sha }} > current_sha.txt
           
             echo "Деплой завершен: $APP_IMAGE:$IMAGE_TAG"
           EOF
