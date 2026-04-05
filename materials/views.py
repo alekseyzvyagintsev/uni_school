@@ -26,7 +26,7 @@ from users.tasks import notify_subscribers_on_course_update, notify_subscribers_
         summary="Получение списка курсов.",
     ),
     update=extend_schema(
-        summary="Полное (PUT) обновление сурса.",
+        summary="Полное (PUT) обновление курса.",
     ),
     partial_update=extend_schema(
         summary="Частичное (PATCH) обновление курса.",

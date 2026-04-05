@@ -131,7 +131,7 @@ jobs:
           docker push $APP_IMAGE:$IMAGE_TAG
 
   deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    # if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
     needs: build
@@ -151,13 +151,24 @@ jobs:
           ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
+      - name: Make deploy directory on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
+            mkdir -p "${{ secrets.DEPLOY_DIR }}"
+            cd "${{ secrets.DEPLOY_DIR }}"
+            mkdir -p "nginx"
+            mkdir -p "collected_static"
+            mkdir -p "media"
+          EOF
+
       - name: Copy docker-compose.yml to server
         run: |
           scp docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/docker-compose.yml
 
       - name: Copy nginx config to server
         run: |
-          scp -r ./nginx ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/nginx
+          scp ./nginx/nginx.conf ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_DIR }}/nginx
 
       - name: Create .env file on server
         run: |
