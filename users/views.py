@@ -218,9 +218,9 @@ class PaymentCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         # Получаем данные из запроса
-        data = self.request.data
-        object_type = data.get("product")
-        object_id = data.get("id")
+        request_data = self.request.data if isinstance(self.request.data, dict) else {}
+        object_type = request_data.get("product")
+        object_id = request_data.get("id")
 
         # Определяем тип объекта (курс или урок)
         if object_type == "Course":
@@ -231,7 +231,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             raise ValueError("Необходимо передать объект типа Course или Lesson.")
 
         # Данные метода оплаты
-        method = data.get("method")
+        method = request_data.get("method")
         user = self.request.user
 
         # Создаем запись платежа
