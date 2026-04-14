@@ -76,7 +76,12 @@ uni_school/
 └── manage.py
 ```
 
-## Настройка переменных окружения
+## Клонирование, настройка и запуск
+
+### Клонируйте репозиторий
+```bash
+git clone https://github.com/alekseyzvyagintsev/uni_school.git && cd uni_school
+```
 
 ### Создайте файл `.env`
 1. Скопируйте шаблон:
